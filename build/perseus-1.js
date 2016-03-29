@@ -14205,6 +14205,7 @@ var IframeEditor = React.createClass({displayName: 'IframeEditor',
         return {
             url: "",
             settings: [{name: "", value: ""}],
+            useBoxSize: false,
             width: 480,
             height: 400
         };
@@ -14215,7 +14216,20 @@ var IframeEditor = React.createClass({displayName: 'IframeEditor',
             React.DOM.label(null, "網址 Url:",
                 BlurInput( {name:"url",
                            value:this.props.url,
-                           onChange:this.change("url")} )
+                           onChange:this.change("url")} 
+                )
+            ),
+            React.DOM.div(null, "長:",
+                BlurInput( {name:"width",
+                           value:this.props.width,
+                           onChange:this.change("width")} 
+                )
+            ),
+            React.DOM.div(null, "寬:",
+                BlurInput( {name:"height",
+                           value:this.props.height,
+                           onChange:this.change("height")} 
+                )
             )
         );
     },
