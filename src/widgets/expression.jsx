@@ -134,8 +134,6 @@ var Expression = React.createClass({
 
     handleChange: function(newValue) {
         this.props.onChange({ value: Util.asc(newValue) });
-        // this.change("value");
-        console.log(newValue);
     },
 
     _handleFocus: function() {
