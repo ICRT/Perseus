@@ -13,7 +13,6 @@ var InputWithExamples = require("../components/input-with-examples.jsx");
 
 var Editor = require("../editor.jsx");
 
-var firstNumericalParse = require("../util.js").firstNumericalParse;
 var Util = require("../util.js");
 
 var answerFormButtons = [
@@ -298,13 +297,13 @@ var NumericInputEditor = React.createClass({
                                 forms = ["proper", "improper"];
                             }
                             this.updateAnswer(i, {
-                                value: firstNumericalParse(newValue),
+                                value: Util.firstNumericalParse(newValue),
                                 answerForms: forms
                             });
                         }}
                         onChange={(newValue) => {
                             this.updateAnswer(i, {
-                                value: firstNumericalParse(newValue)});
+                                value: Util.firstNumericalParse(newValue)});
                         }} />
                     {answer.strict && <div className="is-strict-indicator"
                         title="strictly equivalent to">&equiv;</div>}
