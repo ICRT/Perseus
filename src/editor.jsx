@@ -345,6 +345,8 @@ var Editor = React.createClass({
                 <option value="matrix">矩陣</option>
                 <option value="alignment">互相對齊的方程式(用&amp;對齊)</option>
                 <option value="piecewise">聯立方程式</option>
+                <option value="shortdiv">短除法</option>
+                <option value="crossmulti">十字交乘法</option>
                 <option value="color">顏色(支援red/blue/orange/fuchsia/green/gray/purple/HTML色碼)</option>
             </select>;
 
@@ -556,7 +558,18 @@ var Editor = React.createClass({
                        "x-3=5 \\\\" +
                        "3x+5y=0 \\\\" +
                        "x^2+5=-1 \\\\" +
-                       "\\end{cases}$";
+                    "\\end{cases}$";
+        } else if (templateType === "crossmulti") {
+            template = 
+"$\\begin{array}{rrrrrrr}&&\\p{00000}x^2&-x&-20&& \\end{array} $ "+  
+"$\\begin{array}{rrrrrrr}      &           &x&                    &-5        &      \\\\   x^2&\\huge<& &\\huge\\times&&\\huge>&-20 \\\\         &           &x& &4             &&           &       \\\\\\hline \\end{array} $  "+
+"$\\begin{array}{rrrrrrr}  &&\\p{00}-5x&\\p{0}+&\\p{00}4x&=&-x \\\\ \\end{array}$";
+        }         else if (templateType === "shortdiv") {
+            template = "$\\newcommand{\\p}[1]{\\phantom{#1}} \\\\$" + 
+"$\\require{enclose}\\\\"+
+"2 \\p{0} \\enclose{left,bottom}{\\p{00}42\\p{00}14} \\\\$"+    
+"$\\p{0}7\\p{0}\\enclose{left,bottom}{\\ \\p{0} \\fbox{A} \\ \\ \\p{0}7}\\\\$"+    
+"$\\ \\p{00000}\\ 3 \\ \\  \\p{0} \\fbox{B}\\\\$";
         } else if (templateType === "color") {
             template = "$\\color{fuchsia}{顏色可以自己換}$";
         } else {
