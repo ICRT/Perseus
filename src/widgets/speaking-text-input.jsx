@@ -66,10 +66,6 @@ var iconButtonStyle = {
     lineHeight: 1.5,
 }
 
-var buttonStyle = {
-
-}
-
 var inlineStyle = {
     display: 'inline-block'
 }
@@ -81,14 +77,15 @@ var SpeakingBtn = React.createClass({
             'fa-microphone': !this.state.recognizing,
             'fa fa-spinner fa-spin fa-fw': this.state.recognizing
         });
+        // render different html by Chrome Speech API exist or not
         return (
             <div style={inlineStyle}>
                 {this.recognition
-                    ? <button style={buttonStyle} onClick={this.startRecognizeOnClick} className="simple-button orange">
+                    ? <button onClick={this.startRecognizeOnClick} className="simple-button orange">
                         <i style={iconButtonStyle} className={btnIconCLass}></i>
                         </button>
                     : <div>
-                    <button style={buttonStyle} onClick={this.resetOnClick} className="simple-button orange">
+                    <button onClick={this.resetOnClick} className="simple-button orange">
                             <i style={iconButtonStyle} className="fa fa-refresh fa-2x"></i>
                     </button>
                     <span style={infoStyle}>{this.state.status}</span>
@@ -97,7 +94,7 @@ var SpeakingBtn = React.createClass({
             </div>
         );
     },
-    //
+
 
     getInitialState: function() {
         return {recognizing: false, status: ""}
@@ -130,10 +127,13 @@ var SpeakingBtn = React.createClass({
         var self = this;
         var os = self.getMobileOperatingSystem();
         if (self.hasSpeechRecognition()) {
+            // Chrome Speech API
+            // Document https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
             var recognition = new webkitSpeechRecognition();
             recognition.lang = 'en-US';
             recognition.continuous = false;
             recognition.interimResults = true;
+            // Get at most 20 possible answer for accuracy
             recognition.maxAlternatives = 20;
             self.setState({recognizing: false});
             recognition.onstart = function() {
@@ -144,6 +144,7 @@ var SpeakingBtn = React.createClass({
                 self.setState({recognizing: false});
             };
             recognition.onresult = function(event) {
+                // append all the possible into textbox separated by `/`
                 var res = '';
                 for (var i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -208,7 +209,7 @@ var SpeakingTextInput = React.createClass({
         var correntAns = SpeakingTextInput.parseAnswer(this.props.correct);
         var userAnsList = val.split("/");
         var correntIdx = -1;
-        for (var i = 0, len = userAnsList.length; i < len; i++) {
+        for (var i = 0, var len = userAnsList.length; i < len; i++) {
             if (SpeakingTextInput.arrIsEqual(SpeakingTextInput.parseAnswer(userAnsList[i]), correntAns)) {
                 correntIdx = i;
                 break;

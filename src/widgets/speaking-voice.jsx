@@ -3,6 +3,9 @@
 var React = require('react');
 var Changeable = require("../mixins/changeable.jsx");
 var JsonifyProps = require("../mixins/jsonify-props.jsx");
+// Responsive Voice API https://code.responsivevoice.org/responsivevoice.js
+// Should add `module.exports=ResponsiveVoice;` in the end of js file (require.js)
+// Document http://responsivevoice.org/api/
 var ResponsiveVoice = require('../../lib/responsivevoice.js');
 
 var iconButtonStyle = {
@@ -18,7 +21,8 @@ var buttonStyle = {
 var SpeakingVoice = React.createClass({
     componentDidMount: function() {
         this.responsiveVoice = new ResponsiveVoice;
-        this.responsiveVoice.init(); // must manually init
+        // ResponsiveVoice should be manually init
+        this.responsiveVoice.init();
     },
 
     speak: function() {
