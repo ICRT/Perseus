@@ -153,6 +153,10 @@ var SpeakingBtn = React.createClass({
                             }
                             res = res + event.results[i][j].transcript;
                             self.props.setValue(res);
+                            console.log('result #' + j);
+                            console.log('transcript: ' + event.results[i][j].transcript);
+                            console.log('confidence: ' + event.results[i][j].confidence);
+                            console.log('=================================================');
                         }
                     }
                 }
