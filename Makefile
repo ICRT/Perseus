@@ -9,6 +9,7 @@ PERSEUS_BUILD_CSS=build/perseus-$(API_VERSION_MAJOR).css
 help:
 	@echo "make server PORT=9000  # runs the perseus server"
 	@echo "make build             # compiles into $(PERSEUS_BUILD_JS) and $(PERSEUS_BUILD_CSS)"
+	@echo "make ke                # build symlink to khan-exercises"
 	@echo "make all               # build perseus into webapp"
 
 build: install
