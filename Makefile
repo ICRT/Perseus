@@ -19,8 +19,11 @@ build: install
 	./node_modules/.bin/browserify src/perseus.js -s Perseus -t reactiscriptsixify >> $(PERSEUS_BUILD_JS)
 	./node_modules/.bin/lessc stylesheets/exercise-content-package/perseus.less $(PERSEUS_BUILD_CSS)
 
-server:
+server: ke
 	./node_modules/.bin/beefy src/perseus.js test/test.js $(PORT) -- -s Perseus -t reactiscriptsixify -d
+
+ke:
+	ln -s ../../khan-exercises ke
 
 demo:
 	git checkout gh-pages
