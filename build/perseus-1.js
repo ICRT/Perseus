@@ -1,7 +1,7 @@
 /*! Perseus | http://github.com/Khan/perseus */
-// commit c3a79e5f47a88d2e38c141b3c6206c32dc5538f9
-// branch gh-pages
-!function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.Perseus=e():"undefined"!=typeof global?global.Perseus=e():"undefined"!=typeof self&&(self.Perseus=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// commit b364c00630574736c71927535c25d15db1f15d38
+// branch master
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Perseus = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*
 Software License Agreement (BSD License)
 
@@ -405,509 +405,125 @@ if (typeof module !== 'undefined') {
 }
 
 },{}],2:[function(require,module,exports){
-/** @jsx React.DOM */
-
-var React = require("react");
-
-/* You know when you want to propagate input to a parent...
- * but then that parent does something with the input...
- * then changing the props of the input...
- * on every keystroke...
- * so if some input is invalid or incomplete...
- * the input gets reset or otherwise effed...
- *
- * This is the solution.
- *
- * Enough melodrama. Its an input that only sends changes
- * to its parent on blur.
- */
-var BlurInput = React.createClass({displayName: 'BlurInput',
-    propTypes: {
-        value: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired
-    },
-    getInitialState: function() {
-        return { value: this.props.value };
-    },
-    render: function() {
-        return this.transferPropsTo(React.DOM.input(
-            {type:"text",
-            value:this.state.value,
-            onChange:this.handleChange,
-            onBlur:this.handleBlur} ));
-    },
-    componentWillReceiveProps: function(nextProps) {
-        this.setState({ value: nextProps.value });
-    },
-    handleChange: function(e) {
-        this.setState({ value: e.target.value });
-    },
-    handleBlur: function(e) {
-        this.props.onChange(e.target.value);
-    }
-});
-
-module.exports = BlurInput;
-
-},{"react":115}],3:[function(require,module,exports){
-/** @jsx React.DOM */
-
-var React = require('react');
-var RCSS = require('rcss');
-var _ = require('underscore');
-
-var outerStyle = {
-    display: 'inline-block',
-};
-
-var buttonStyle = {
-    backgroundColor: 'white',
-    border: '1px solid #ccc',
-    borderBottom: '1px solid #ccc',
-    borderLeft: '0',
-    cursor: 'pointer',
-    margin: '0',
-    padding: '5px 10px',
-    position: 'relative', // for hover
-
-    ':first-child': {
-        borderLeft: '1px solid #ccc',
-        borderTopLeftRadius: '3px',
-        borderBottomLeftRadius: '3px'
-    },
-
-    ':last-child': {
-        borderRight: '1px solid #ccc',
-        borderTopRightRadius: '3px',
-        borderBottomRightRadius: '3px'
-    },
-
-    ':hover': {
-        backgroundColor: '#ccc'
-    },
-
-    ':focus': {
-        zIndex: '2'
-    }
-};
-
-var selectedStyle = {
-    backgroundColor: '#ddd'
-};
-
-RCSS.createClass(outerStyle);
-RCSS.createClass(buttonStyle);
-RCSS.createClass(selectedStyle);
-
-/* ButtonGroup is an aesthetically pleasing group of buttons.
- *
- * The class requires these properties:
- *   buttons - an array of objects with keys:
- *     "value": this is the value returned when the button is selected
- *     "text": this is the text shown on the button
- *     "title": this is the title-text shown on hover
- *   onChange - a function that is provided with the updated value
- *     (which it then is responsible for updating)
- *
- * The class has these optional properties:
- *   value - the initial value of the button selected, defaults to null.
- *   allowEmpty - if false, exactly one button _must_ be selected; otherwise
- *     it defaults to true and _at most_ one button (0 or 1) may be selected.
- *
- * Requires stylesheets/perseus-admin-package/editor.less to look nice.
- */
-
-var ButtonGroup = React.createClass({displayName: 'ButtonGroup',
-    propTypes: {
-        value: React.PropTypes.any,
-        buttons: React.PropTypes.arrayOf(React.PropTypes.shape({
-            value: React.PropTypes.any.isRequired,
-            text: React.PropTypes.renderable,
-            title: React.PropTypes.string
-        })).isRequired,
-        onChange: React.PropTypes.func.isRequired,
-        allowEmpty: React.PropTypes.bool
-    },
-
-    getDefaultProps: function() {
-        return {
-            value: null,
-            allowEmpty: true
-        };
-    },
-
-    render: function() {
-        var value = this.props.value;
-        var buttons = _(this.props.buttons).map(function(button, i)  {
-                var maybeSelected = button.value === value ?
-                        selectedStyle.className :
-                        "";
-                return React.DOM.button( {title:button.title,
-                        id:"" + i,
-                        ref:"button" + i,
-                        key:"" + i,
-                        className:(buttonStyle.className + " " + maybeSelected),
-                        onClick:this.toggleSelect.bind(this, button.value)}, 
-                    button.text || "" + button.value
-                );
-            }.bind(this));
-
-        return React.DOM.div( {className:outerStyle.className}, 
-            buttons
-        );
-    },
-
-    focus: function() {
-        this.getDOMNode().focus();
-        return true;
-    },
-
-    toggleSelect: function(newValue) {
-        var value = this.props.value;
-
-        if (this.props.allowEmpty) {
-            // Select the new button or unselect if it's already selected
-            this.props.onChange(value !== newValue ? newValue : null);
-        } else {
-            this.props.onChange(newValue);
-        }
-    }
-});
-
-module.exports = ButtonGroup;
-
-},{"rcss":6,"react":115,"underscore":116}],4:[function(require,module,exports){
-/** @jsx React.DOM */
-
-var React = require('react');
-
-/* This component makes its children a drag target. Example:
- *
- *     <DragTarget onDrop={this.handleDrop}>Drag to me</DragTarget>
- *
- *     ...
- *
- *     handleDrop: function(e) {
- *         this.addImages(e.nativeEvent.dataTransfer.files);
- *     }
- *
- * Now "Drag to me" will be a drag target - when something is dragged over it,
- * the element will become partially transparent as a visual indicator that
- * it's a target.
- */
-// TODO(joel) - indicate before the hover is over the target that it's possible
-// to drag into the target. This would (I think) require a high level handler -
-// like on Perseus itself, waiting for onDragEnter, then passing down the
-// event. Sounds like a pain. Possible workaround - create a div covering the
-// entire page...
-//
-// Other extensions:
-// * custom styles for global drag and dragOver
-// * only respond to certain types of drags (only images for instance)!
-var DragTarget = React.createClass({displayName: 'DragTarget',
-    propTypes: {
-        onDrop: React.PropTypes.func.isRequired,
-        component: React.PropTypes.component,
-        shouldDragHighlight: React.PropTypes.func
-    },
-    render: function() {
-        var opacity = this.state.dragHover ? { "opacity": 0.3 } : {};
-        var component = this.props.component;
-
-        return this.transferPropsTo(
-            component( {style:opacity,
-                       onDrop:this.handleDrop,
-                       onDragEnd:this.handleDragEnd,
-                       onDragOver:this.handleDragOver,
-                       onDragEnter:this.handleDragEnter,
-                       onDragLeave:this.handleDragLeave}, 
-                this.props.children
-            )
-        );
-    },
-    getInitialState: function() {
-        return { dragHover: false };
-    },
-    getDefaultProps: function() {
-        return {
-            component: React.DOM.div,
-            shouldDragHighlight: function()  {return true;}
-        };
-    },
-    handleDrop: function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        this.setState({ dragHover: false });
-        this.props.onDrop(e);
-    },
-    handleDragEnd: function() {
-        this.setState({ dragHover: false });
-    },
-    handleDragOver: function(e) {
-        e.preventDefault();
-    },
-    handleDragLeave: function() {
-        this.setState({ dragHover: false });
-    },
-    handleDragEnter: function(e) {
-        this.setState({ dragHover: this.props.shouldDragHighlight(e) });
-    }
-});
-
-module.exports = DragTarget;
-
-},{"react":115}],5:[function(require,module,exports){
-/** @jsx React.DOM */
-
-var React = require('react');
-var RCSS = require('rcss');
-var _ = require('underscore');
-
-var colors = {
-    grayLight: '#aaa',
-    basicBorderColor: '#ccc',
-    white: '#fff'
-};
-
-var infoTip = {
-    display: 'inline-block',
-    marginLeft: '5px',
-    position: 'relative'
-};
-
-var infoTipI = {
-    cursor: 'pointer'
-};
-
-var infoTipContainer = {
-    position: 'absolute',
-    'top': '-12px',
-    left: '22px',
-    zIndex: '1000'
-};
-
-var triangleBeforeAfter = {
-    borderBottom: '9px solid transparent',
-    borderTop: '9px solid transparent',
-    content: ' ',
-    height: '0',
-    position: 'absolute',
-    'top': '0',
-    width: '0'
-};
-
-var infoTipTriangle = {
-    height: '10px',
-    left: '0',
-    position: 'absolute',
-    'top': '8px',
-    width: '0',
-    zIndex: '1',
-
-    ':before': _.extend({}, triangleBeforeAfter, {
-        borderRight: '9px solid #bbb',
-        right: '0',
-    }),
-
-    ':after': _.extend({}, triangleBeforeAfter, {
-        borderRight: ("9px solid " + colors.white),
-        right: '-1px'
-    })
-};
-
-var basicBorder = {
-    border: ("1px solid " + colors.basicBorderColor)
-};
-
-var boxShadow = function(str)  { return { boxShadow: str }; };
-
-var verticalShadow = RCSS.merge(
-    basicBorder,
-    boxShadow(("0 1px 3px " + colors.basicBorderColor)),
-    { borderBottom: ("1px solid " + colors.grayLight) }
-);
-
-var infoTipContentContainer = RCSS.merge(verticalShadow, {
-    background: colors.white,
-    padding: '5px 10px',
-    width: '240px'
-});
-
-RCSS.createClass(infoTip);
-RCSS.createClass(infoTipI);
-RCSS.createClass(infoTipTriangle);
-RCSS.createClass(verticalShadow);
-RCSS.createClass(infoTipContainer);
-RCSS.createClass(infoTipContentContainer);
-
-var questionMark = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA3NpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDIxIDc5LjE1NDkxMSwgMjAxMy8xMC8yOS0xMTo0NzoxNiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2N2M3NTAxYS04YmVlLTQ0M2MtYmRiNS04OGM2N2IxN2NhYzEiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUJCRTk4Qjc4NjAwMTFFMzg3QUJDNEI4Mzk2QTRGQkQiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUJCRTk4QjY4NjAwMTFFMzg3QUJDNEI4Mzk2QTRGQkQiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NGE5ZDI0OTMtODk1NC00OGFkLTlhMTgtZDAwM2MwYWNjNDJlIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjY3Yzc1MDFhLThiZWUtNDQzYy1iZGI1LTg4YzY3YjE3Y2FjMSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pqm89uYAAADMSURBVHjaXJA9DoJAEIUH1M4TUHIFsCMGen9OwCGw1YRGW2ntKel0exsojHIBC0ouQAyUviFDstmXfNmZeS+zm7XSNCXRFiRgJf0bXIHixpbhGdxBBJYC1w/xaA424MhNEATkui71fU9KqfEU78UbD9PdbJRlOdae55GmhIP+1NV1TcMwkOM41DSNHvRtMhTHMRVFQW3b6mOLgx99kue5GRp/gIOZuZGvNpTNwjD8oliANU+qqqKu6/TQBdymN57AHjzBT+B6Jx79BRgAvc49kQA4yxgAAAAASUVORK5CYII='; // @NoLint
-
-var InfoTip = React.createClass({displayName: 'InfoTip',
-    getInitialState: function() {
-        return {
-            hover: false
-        };
-    },
-
-    render: function() {
-        return React.DOM.div( {className:infoTip.className}, 
-            React.DOM.img( {width:10,
-                 height:10,
-                 src:questionMark,
-                 onMouseEnter:this.handleMouseEnter,
-                 onMouseLeave:this.handleMouseLeave} ),
-            React.DOM.div( {className:infoTipContainer.className,
-                 style:{display: this.state.hover ? 'block' : 'none'}}, 
-                React.DOM.div( {className:infoTipTriangle.className} ),
-                /* keep the classes here - used for selectors on KA */
-                React.DOM.div( {className:infoTipContentContainer.className}, 
-                    this.props.children
-                )
-            )
-        );
-    },
-
-    handleMouseEnter: function() {
-        this.setState({hover: true});
-    },
-
-    handleMouseLeave: function() {
-        this.setState({hover: false});
-    }
-});
-
-module.exports = InfoTip;
-
-},{"rcss":6,"react":115,"underscore":116}],6:[function(require,module,exports){
-var assign = require('lodash.assign');
-
-var styleRuleValidator = require('./styleRuleValidator');
-var styleRuleConverter = require('./styleRuleConverter');
-var mediaQueryValidator = require('valid-media-queries');
-
-var existingClasses = {};
-var styleTag = createStyleTag();
-
-var classNameId = 0;
-var randomSuffix = Math.random().toString(36).slice(-5);
-
-function generateValidCSSClassName() {
-  // CSS classNames can't start with a number.
-  return 'c' + (classNameId++) + '-' + randomSuffix;
-}
-
-function objToCSS(style) {
-  var serialized = '';
-  for (var propName in style) {
-    // we put that ourselves
-    if (propName == 'className') continue;
-
-    var cssPropName = styleRuleConverter.hyphenateProp(propName);
-    if (!styleRuleValidator.isValidProp(cssPropName)) {
-      console.warn(
-        '%s (transformed into %s) is not a valid CSS property name.', propName, cssPropName
-      );
-      continue;
-    }
-
-    var styleValue = style[propName];
-    if (!styleRuleValidator.isValidValue(styleValue)) continue;
-
-    if (styleValue !== null) {
-      serialized += cssPropName + ':';
-      serialized += styleRuleConverter.escapeValueForProp(styleValue,
-        cssPropName) + ';';
-    }
-  }
-  return serialized || null;
-}
-
-function createStyleTag() {
-  var tag = document.createElement('style');
-  document.getElementsByTagName('head')[0].appendChild(tag);
-  return tag;
-}
-
-function styleToCSS(style) {
-  var styleStr = '.' + style.className + '{';
-  styleStr += objToCSS(style.value);
-  styleStr += '}';
-
-  if (style.media) {
-    if (!mediaQueryValidator(style.media)) {
-      console.log('%s is not a valid media query.', style.media);
-    }
-    styleStr = style.media + '{' + styleStr + '}';
-  }
-
-  return styleStr;
-}
-
-// TODO: support media queries
-function parseStyles(className, styleObj) {
-  var mainStyle = {
-    className: className,
-    value: {}
-  };
-  var styles = [mainStyle];
-
-  Object.keys(styleObj).forEach(function(k){
-    // pseudo-selector, insert a new rule
-    if (k[0] === ':') {
-      styles.push({
-        className: className+k,
-        value: styleObj[k]
-      });
-      return;
-    } else if (k.substring(0, 6) === '@media') {
-      styles.push({
-        className: className,
-        value: styleObj[k],
-        media: k
-      });
-      return;
-    }
-
-    // normal rule, insert into main one
-    mainStyle.value[k] = styleObj[k];
-  });
-
-  return styles;
-}
-
-function insertStyle(className, styleObj) {
-  var styles = parseStyles(className, styleObj);
-  var styleStr = styles.map(styleToCSS).join('');
-  styleTag.innerHTML += styleStr;
-}
-
-var RCSS = {
-  merge: function(a, b, c, d, e) {
-    return assign({}, a, b, c, d, e);
-  },
-
-  createClass: function(styleObj) {
-    var styleId = JSON.stringify(styleObj);
-    var className;
-
-    if (existingClasses[styleId]) {
-      // already exists, use the existing className
-      className = existingClasses[styleId];
-    } else {
-      // generate a new class and insert it
-      className = generateValidCSSClassName();
-      existingClasses[styleId] = className;
-      insertStyle(className, styleObj);
-    }
-
-    styleObj.className = className;
-    return styleObj;
-  }
-};
-
-module.exports = RCSS;
-
-},{"./styleRuleConverter":111,"./styleRuleValidator":112,"lodash.assign":7,"valid-media-queries":46}],7:[function(require,module,exports){
+/*
+ ResponsiveVoice JS v1.4.7
+
+ (c) 2015 LearnBrite
+
+ License: http://responsivevoice.org/license
+*/
+if("undefined"!=typeof responsiveVoice)console.log("ResponsiveVoice already loaded"),console.log(responsiveVoice);else var ResponsiveVoice=function(){var a=this;a.version="1.4.7";console.log("ResponsiveVoice r"+a.version);a.responsivevoices=[{name:"UK English Female",flag:"gb",gender:"f",voiceIDs:[3,5,1,6,7,171,201,8]},{name:"UK English Male",flag:"gb",gender:"m",voiceIDs:[0,4,2,75,202,159,6,7]},{name:"US English Female",flag:"us",gender:"f",voiceIDs:[39,40,41,42,43,173,205,204,44]},{name:"Arabic Male",
+flag:"ar",gender:"m",voiceIDs:[96,95,97,196,98],deprecated:!0},{name:"Arabic Female",flag:"ar",gender:"f",voiceIDs:[96,95,97,196,98]},{name:"Armenian Male",flag:"hy",gender:"f",voiceIDs:[99]},{name:"Australian Female",flag:"au",gender:"f",voiceIDs:[87,86,5,201,88]},{name:"Brazilian Portuguese Female",flag:"br",gender:"f",voiceIDs:[124,123,125,186,223,126]},{name:"Chinese Female",flag:"cn",gender:"f",voiceIDs:[58,59,60,155,191,231,61]},{name:"Czech Female",flag:"cz",gender:"f",voiceIDs:[101,100,102,
+197,103]},{name:"Danish Female",flag:"dk",gender:"f",voiceIDs:[105,104,106,198,107]},{name:"Deutsch Female",flag:"de",gender:"f",voiceIDs:[27,28,29,30,31,78,170,199,32]},{name:"Dutch Female",flag:"nl",gender:"f",voiceIDs:[219,84,157,158,184,45]},{name:"Finnish Female",flag:"fi",gender:"f",voiceIDs:[90,89,91,209,92]},{name:"French Female",flag:"fr",gender:"f",voiceIDs:[21,22,23,77,178,210,26]},{name:"Greek Female",flag:"gr",gender:"f",voiceIDs:[62,63,80,200,64]},{name:"Hatian Creole Female",flag:"ht",
+gender:"f",voiceIDs:[109]},{name:"Hindi Female",flag:"hi",gender:"f",voiceIDs:[66,154,179,213,67]},{name:"Hungarian Female",flag:"hu",gender:"f",voiceIDs:[9,10,81,214,11]},{name:"Indonesian Female",flag:"id",gender:"f",voiceIDs:[111,112,180,215,113]},{name:"Italian Female",flag:"it",gender:"f",voiceIDs:[33,34,35,36,37,79,181,216,38]},{name:"Japanese Female",flag:"jp",gender:"f",voiceIDs:[50,51,52,153,182,217,53]},{name:"Korean Female",flag:"kr",gender:"f",voiceIDs:[54,55,56,156,183,218,57]},{name:"Latin Female",
+flag:"va",gender:"f",voiceIDs:[114]},{name:"Norwegian Female",flag:"no",gender:"f",voiceIDs:[72,73,221,74]},{name:"Polish Female",flag:"pl",gender:"f",voiceIDs:[120,119,121,185,222,122]},{name:"Portuguese Female",flag:"br",gender:"f",voiceIDs:[128,127,129,187,224,130]},{name:"Romanian Male",flag:"ro",gender:"m",voiceIDs:[151,150,152,225,46]},{name:"Russian Female",flag:"ru",gender:"f",voiceIDs:[47,48,83,188,226,49]},{name:"Slovak Female",flag:"sk",gender:"f",voiceIDs:[133,132,134,227,135]},{name:"Spanish Female",
+flag:"es",gender:"f",voiceIDs:[19,16,17,18,20,76,174,207,15]},{name:"Spanish Latin American Female",flag:"es",gender:"f",voiceIDs:[137,136,138,175,208,139]},{name:"Swedish Female",flag:"sv",gender:"f",voiceIDs:[85,148,149,228,65]},{name:"Tamil Male",flag:"hi",gender:"m",voiceIDs:[141]},{name:"Thai Female",flag:"th",gender:"f",voiceIDs:[143,142,144,189,229,145]},{name:"Turkish Female",flag:"tr",gender:"f",voiceIDs:[69,70,82,190,230,71]},{name:"Afrikaans Male",flag:"af",gender:"m",voiceIDs:[93]},{name:"Albanian Male",
+flag:"sq",gender:"m",voiceIDs:[94]},{name:"Bosnian Male",flag:"bs",gender:"m",voiceIDs:[14]},{name:"Catalan Male",flag:"catalonia",gender:"m",voiceIDs:[68]},{name:"Croatian Male",flag:"hr",gender:"m",voiceIDs:[13]},{name:"Czech Male",flag:"cz",gender:"m",voiceIDs:[161]},{name:"Danish Male",flag:"da",gender:"m",voiceIDs:[162],deprecated:!0},{name:"Esperanto Male",flag:"eo",gender:"m",voiceIDs:[108]},{name:"Finnish Male",flag:"fi",gender:"m",voiceIDs:[160],deprecated:!0},{name:"Greek Male",flag:"gr",
+gender:"m",voiceIDs:[163],deprecated:!0},{name:"Hungarian Male",flag:"hu",gender:"m",voiceIDs:[164]},{name:"Icelandic Male",flag:"is",gender:"m",voiceIDs:[110]},{name:"Latin Male",flag:"va",gender:"m",voiceIDs:[165],deprecated:!0},{name:"Latvian Male",flag:"lv",gender:"m",voiceIDs:[115]},{name:"Macedonian Male",flag:"mk",gender:"m",voiceIDs:[116]},{name:"Moldavian Male",flag:"md",gender:"m",voiceIDs:[117]},{name:"Montenegrin Male",flag:"me",gender:"m",voiceIDs:[118]},{name:"Norwegian Male",flag:"no",
+gender:"m",voiceIDs:[166]},{name:"Serbian Male",flag:"sr",gender:"m",voiceIDs:[12]},{name:"Serbo-Croatian Male",flag:"hr",gender:"m",voiceIDs:[131]},{name:"Slovak Male",flag:"sk",gender:"m",voiceIDs:[167],deprecated:!0},{name:"Swahili Male",flag:"sw",gender:"m",voiceIDs:[140]},{name:"Swedish Male",flag:"sv",gender:"m",voiceIDs:[168],deprecated:!0},{name:"Vietnamese Male",flag:"vi",gender:"m",voiceIDs:[146],deprecated:!0},{name:"Welsh Male",flag:"cy",gender:"m",voiceIDs:[147]},{name:"US English Male",
+flag:"us",gender:"m",voiceIDs:[0,4,2,6,7,75,159]},{name:"Fallback UK Female",flag:"gb",gender:"f",voiceIDs:[8]}];a.voicecollection=[{name:"Google UK English Male"},{name:"Agnes"},{name:"Daniel Compact"},{name:"Google UK English Female"},{name:"en-GB",rate:.25,pitch:1},{name:"en-AU",rate:.25,pitch:1},{name:"ingl\u00e9s Reino Unido"},{name:"English United Kingdom"},{name:"Fallback en-GB Female",lang:"en-GB",fallbackvoice:!0},{name:"Eszter Compact"},{name:"hu-HU",rate:.4},{name:"Fallback Hungarian",
+lang:"hu",fallbackvoice:!0,service:"g2"},{name:"Fallback Serbian",lang:"sr",fallbackvoice:!0},{name:"Fallback Croatian",lang:"hr",fallbackvoice:!0},{name:"Fallback Bosnian",lang:"bs",fallbackvoice:!0},{name:"Fallback Spanish",lang:"es",fallbackvoice:!0},{name:"Spanish Spain"},{name:"espa\u00f1ol Espa\u00f1a"},{name:"Diego Compact",rate:.3},{name:"Google Espa\u00f1ol"},{name:"es-ES",rate:.2},{name:"Google Fran\u00e7ais"},{name:"French France"},{name:"franc\u00e9s Francia"},{name:"Virginie Compact",
+rate:.5},{name:"fr-FR",rate:.25},{name:"Fallback French",lang:"fr",fallbackvoice:!0},{name:"Google Deutsch"},{name:"German Germany"},{name:"alem\u00e1n Alemania"},{name:"Yannick Compact",rate:.5},{name:"de-DE",rate:.25},{name:"Fallback Deutsch",lang:"de",fallbackvoice:!0},{name:"Google Italiano"},{name:"Italian Italy"},{name:"italiano Italia"},{name:"Paolo Compact",rate:.5},{name:"it-IT",rate:.25},{name:"Fallback Italian",lang:"it",fallbackvoice:!0},{name:"Google US English",timerSpeed:1},{name:"English United States"},
+{name:"ingl\u00e9s Estados Unidos"},{name:"Vicki"},{name:"en-US",rate:.2,pitch:1,timerSpeed:1.3},{name:"Fallback English",lang:"en-US",fallbackvoice:!0,timerSpeed:0},{name:"Fallback Dutch",lang:"nl",fallbackvoice:!0,timerSpeed:0},{name:"Fallback Romanian",lang:"ro",fallbackvoice:!0},{name:"Milena Compact"},{name:"ru-RU",rate:.25},{name:"Fallback Russian",lang:"ru",fallbackvoice:!0},{name:"Google \u65e5\u672c\u4eba",timerSpeed:1},{name:"Kyoko Compact"},{name:"ja-JP",rate:.25},{name:"Fallback Japanese",
+lang:"ja",fallbackvoice:!0},{name:"Google \ud55c\uad6d\uc758",timerSpeed:1},{name:"Narae Compact"},{name:"ko-KR",rate:.25},{name:"Fallback Korean",lang:"ko",fallbackvoice:!0},{name:"Google \u4e2d\u56fd\u7684",timerSpeed:1},{name:"Ting-Ting Compact"},{name:"zh-CN",rate:.25},{name:"Fallback Chinese",lang:"zh-CN",fallbackvoice:!0},{name:"Alexandros Compact"},{name:"el-GR",rate:.25},{name:"Fallback Greek",lang:"el",fallbackvoice:!0,service:"g2"},{name:"Fallback Swedish",lang:"sv",fallbackvoice:!0,service:"g2"},
+{name:"hi-IN",rate:.25},{name:"Fallback Hindi",lang:"hi",fallbackvoice:!0},{name:"Fallback Catalan",lang:"ca",fallbackvoice:!0},{name:"Aylin Compact"},{name:"tr-TR",rate:.25},{name:"Fallback Turkish",lang:"tr",fallbackvoice:!0},{name:"Stine Compact"},{name:"no-NO",rate:.25},{name:"Fallback Norwegian",lang:"no",fallbackvoice:!0,service:"g2"},{name:"Daniel"},{name:"Monica"},{name:"Amelie"},{name:"Anna"},{name:"Alice"},{name:"Melina"},{name:"Mariska"},{name:"Yelda"},{name:"Milena"},{name:"Xander"},{name:"Alva"},
+{name:"Lee Compact"},{name:"Karen"},{name:"Fallback Australian",lang:"en-AU",fallbackvoice:!0},{name:"Mikko Compact"},{name:"Satu"},{name:"fi-FI",rate:.25},{name:"Fallback Finnish",lang:"fi",fallbackvoice:!0,service:"g2"},{name:"Fallback Afrikans",lang:"af",fallbackvoice:!0},{name:"Fallback Albanian",lang:"sq",fallbackvoice:!0},{name:"Maged Compact"},{name:"Tarik"},{name:"ar-SA",rate:.25},{name:"Fallback Arabic",lang:"ar",fallbackvoice:!0,service:"g2"},{name:"Fallback Armenian",lang:"hy",fallbackvoice:!0,
+service:"g2"},{name:"Zuzana Compact"},{name:"Zuzana"},{name:"cs-CZ",rate:.25},{name:"Fallback Czech",lang:"cs",fallbackvoice:!0,service:"g2"},{name:"Ida Compact"},{name:"Sara"},{name:"da-DK",rate:.25},{name:"Fallback Danish",lang:"da",fallbackvoice:!0,service:"g2"},{name:"Fallback Esperanto",lang:"eo",fallbackvoice:!0},{name:"Fallback Hatian Creole",lang:"ht",fallbackvoice:!0},{name:"Fallback Icelandic",lang:"is",fallbackvoice:!0},{name:"Damayanti"},{name:"id-ID",rate:.25},{name:"Fallback Indonesian",
+lang:"id",fallbackvoice:!0},{name:"Fallback Latin",lang:"la",fallbackvoice:!0,service:"g2"},{name:"Fallback Latvian",lang:"lv",fallbackvoice:!0},{name:"Fallback Macedonian",lang:"mk",fallbackvoice:!0},{name:"Fallback Moldavian",lang:"mo",fallbackvoice:!0,service:"g2"},{name:"Fallback Montenegrin",lang:"sr-ME",fallbackvoice:!0},{name:"Agata Compact"},{name:"Zosia"},{name:"pl-PL",rate:.25},{name:"Fallback Polish",lang:"pl",fallbackvoice:!0},{name:"Raquel Compact"},{name:"Luciana"},{name:"pt-BR",rate:.25},
+{name:"Fallback Brazilian Portugese",lang:"pt-BR",fallbackvoice:!0,service:"g2"},{name:"Joana Compact"},{name:"Joana"},{name:"pt-PT",rate:.25},{name:"Fallback Portuguese",lang:"pt-PT",fallbackvoice:!0},{name:"Fallback Serbo-Croation",lang:"sh",fallbackvoice:!0,service:"g2"},{name:"Laura Compact"},{name:"Laura"},{name:"sk-SK",rate:.25},{name:"Fallback Slovak",lang:"sk",fallbackvoice:!0,service:"g2"},{name:"Javier Compact"},{name:"Paulina"},{name:"es-MX",rate:.25},{name:"Fallback Spanish (Latin American)",
+lang:"es-419",fallbackvoice:!0,service:"g2"},{name:"Fallback Swahili",lang:"sw",fallbackvoice:!0},{name:"Fallback Tamil",lang:"ta",fallbackvoice:!0},{name:"Narisa Compact"},{name:"Kanya"},{name:"th-TH",rate:.25},{name:"Fallback Thai",lang:"th",fallbackvoice:!0},{name:"Fallback Vietnamese",lang:"vi",fallbackvoice:!0},{name:"Fallback Welsh",lang:"cy",fallbackvoice:!0},{name:"Oskar Compact"},{name:"sv-SE",rate:.25},{name:"Simona Compact"},{name:"Ioana"},{name:"ro-RO",rate:.25},{name:"Kyoko"},{name:"Lekha"},
+{name:"Ting-Ting"},{name:"Yuna"},{name:"Xander Compact"},{name:"nl-NL",rate:.25},{name:"Fallback UK English Male",lang:"en-GB",fallbackvoice:!0,service:"g1",voicename:"rjs"},{name:"Finnish Male",lang:"fi",fallbackvoice:!0,service:"g1",voicename:""},{name:"Czech Male",lang:"cs",fallbackvoice:!0,service:"g1",voicename:""},{name:"Danish Male",lang:"da",fallbackvoice:!0,service:"g1",voicename:""},{name:"Greek Male",lang:"el",fallbackvoice:!0,service:"g1",voicename:"",rate:.25},{name:"Hungarian Male",
+lang:"hu",fallbackvoice:!0,service:"g1",voicename:""},{name:"Latin Male",lang:"la",fallbackvoice:!0,service:"g1",voicename:""},{name:"Norwegian Male",lang:"no",fallbackvoice:!0,service:"g1",voicename:""},{name:"Slovak Male",lang:"sk",fallbackvoice:!0,service:"g1",voicename:""},{name:"Swedish Male",lang:"sv",fallbackvoice:!0,service:"g1",voicename:""},{name:"Fallback US English Male",lang:"en",fallbackvoice:!0,service:"tts-api",voicename:""},{name:"German Germany",lang:"de_DE"},{name:"English United Kingdom",
+lang:"en_GB"},{name:"English India",lang:"en_IN"},{name:"English United States",lang:"en_US"},{name:"Spanish Spain",lang:"es_ES"},{name:"Spanish Mexico",lang:"es_MX"},{name:"Spanish United States",lang:"es_US"},{name:"French Belgium",lang:"fr_BE"},{name:"French France",lang:"fr_FR"},{name:"Hindi India",lang:"hi_IN"},{name:"Indonesian Indonesia",lang:"in_ID"},{name:"Italian Italy",lang:"it_IT"},{name:"Japanese Japan",lang:"ja_JP"},{name:"Korean South Korea",lang:"ko_KR"},{name:"Dutch Netherlands",
+lang:"nl_NL"},{name:"Polish Poland",lang:"pl_PL"},{name:"Portuguese Brazil",lang:"pt_BR"},{name:"Portuguese Portugal",lang:"pt_PT"},{name:"Russian Russia",lang:"ru_RU"},{name:"Thai Thailand",lang:"th_TH"},{name:"Turkish Turkey",lang:"tr_TR"},{name:"Chinese China",lang:"zh_CN_#Hans"},{name:"Chinese Hong Kong",lang:"zh_HK_#Hans"},{name:"Chinese Hong Kong",lang:"zh_HK_#Hant"},{name:"Chinese Taiwan",lang:"zh_TW_#Hant"},{name:"Alex"},{name:"Maged",lang:"ar-SA"},{name:"Zuzana",lang:"cs-CZ"},{name:"Sara",
+lang:"da-DK"},{name:"Anna",lang:"de-DE"},{name:"Melina",lang:"el-GR"},{name:"Karen",lang:"en-AU"},{name:"Daniel",lang:"en-GB"},{name:"Moira",lang:"en-IE"},{name:"Samantha (Enhanced)",lang:"en-US"},{name:"Samantha",lang:"en-US"},{name:"Tessa",lang:"en-ZA"},{name:"Monica",lang:"es-ES"},{name:"Paulina",lang:"es-MX"},{name:"Satu",lang:"fi-FI"},{name:"Amelie",lang:"fr-CA"},{name:"Thomas",lang:"fr-FR"},{name:"Carmit",lang:"he-IL"},{name:"Lekha",lang:"hi-IN"},{name:"Mariska",lang:"hu-HU"},{name:"Damayanti",
+lang:"id-ID"},{name:"Alice",lang:"it-IT"},{name:"Kyoko",lang:"ja-JP"},{name:"Yuna",lang:"ko-KR"},{name:"Ellen",lang:"nl-BE"},{name:"Xander",lang:"nl-NL"},{name:"Nora",lang:"no-NO"},{name:"Zosia",lang:"pl-PL"},{name:"Luciana",lang:"pt-BR"},{name:"Joana",lang:"pt-PT"},{name:"Ioana",lang:"ro-RO"},{name:"Milena",lang:"ru-RU"},{name:"Laura",lang:"sk-SK"},{name:"Alva",lang:"sv-SE"},{name:"Kanya",lang:"th-TH"},{name:"Yelda",lang:"tr-TR"},{name:"Ting-Ting",lang:"zh-CN"},{name:"Sin-Ji",lang:"zh-HK"},{name:"Mei-Jia",
+lang:"zh-TW"}];a.iOS=/(iPad|iPhone|iPod)/g.test(navigator.userAgent);a.iOS9=/(iphone|ipod|ipad).* os 9_/.test(navigator.userAgent.toLowerCase());a.is_chrome=-1<navigator.userAgent.indexOf("Chrome");a.is_safari=-1<navigator.userAgent.indexOf("Safari");a.is_chrome&&a.is_safari&&(a.is_safari=!1);a.is_opera=!!window.opera||0<=navigator.userAgent.indexOf(" OPR/");a.is_android=-1<navigator.userAgent.toLowerCase().indexOf("android");a.iOS_initialized=!1;a.iOS9_initialized=!1;a.cache_ios_voices=[{name:"he-IL",
+voiceURI:"he-IL",lang:"he-IL"},{name:"th-TH",voiceURI:"th-TH",lang:"th-TH"},{name:"pt-BR",voiceURI:"pt-BR",lang:"pt-BR"},{name:"sk-SK",voiceURI:"sk-SK",lang:"sk-SK"},{name:"fr-CA",voiceURI:"fr-CA",lang:"fr-CA"},{name:"ro-RO",voiceURI:"ro-RO",lang:"ro-RO"},{name:"no-NO",voiceURI:"no-NO",lang:"no-NO"},{name:"fi-FI",voiceURI:"fi-FI",lang:"fi-FI"},{name:"pl-PL",voiceURI:"pl-PL",lang:"pl-PL"},{name:"de-DE",voiceURI:"de-DE",lang:"de-DE"},{name:"nl-NL",voiceURI:"nl-NL",lang:"nl-NL"},{name:"id-ID",voiceURI:"id-ID",
+lang:"id-ID"},{name:"tr-TR",voiceURI:"tr-TR",lang:"tr-TR"},{name:"it-IT",voiceURI:"it-IT",lang:"it-IT"},{name:"pt-PT",voiceURI:"pt-PT",lang:"pt-PT"},{name:"fr-FR",voiceURI:"fr-FR",lang:"fr-FR"},{name:"ru-RU",voiceURI:"ru-RU",lang:"ru-RU"},{name:"es-MX",voiceURI:"es-MX",lang:"es-MX"},{name:"zh-HK",voiceURI:"zh-HK",lang:"zh-HK"},{name:"sv-SE",voiceURI:"sv-SE",lang:"sv-SE"},{name:"hu-HU",voiceURI:"hu-HU",lang:"hu-HU"},{name:"zh-TW",voiceURI:"zh-TW",lang:"zh-TW"},{name:"es-ES",voiceURI:"es-ES",lang:"es-ES"},
+{name:"zh-CN",voiceURI:"zh-CN",lang:"zh-CN"},{name:"nl-BE",voiceURI:"nl-BE",lang:"nl-BE"},{name:"en-GB",voiceURI:"en-GB",lang:"en-GB"},{name:"ar-SA",voiceURI:"ar-SA",lang:"ar-SA"},{name:"ko-KR",voiceURI:"ko-KR",lang:"ko-KR"},{name:"cs-CZ",voiceURI:"cs-CZ",lang:"cs-CZ"},{name:"en-ZA",voiceURI:"en-ZA",lang:"en-ZA"},{name:"en-AU",voiceURI:"en-AU",lang:"en-AU"},{name:"da-DK",voiceURI:"da-DK",lang:"da-DK"},{name:"en-US",voiceURI:"en-US",lang:"en-US"},{name:"en-IE",voiceURI:"en-IE",lang:"en-IE"},{name:"hi-IN",
+voiceURI:"hi-IN",lang:"hi-IN"},{name:"el-GR",voiceURI:"el-GR",lang:"el-GR"},{name:"ja-JP",voiceURI:"ja-JP",lang:"ja-JP"}];a.cache_ios9_voices=[{name:"Maged",voiceURI:"com.apple.ttsbundle.Maged-compact",lang:"ar-SA",localService:!0,"default":!0},{name:"Zuzana",voiceURI:"com.apple.ttsbundle.Zuzana-compact",lang:"cs-CZ",localService:!0,"default":!0},{name:"Sara",voiceURI:"com.apple.ttsbundle.Sara-compact",lang:"da-DK",localService:!0,"default":!0},{name:"Anna",voiceURI:"com.apple.ttsbundle.Anna-compact",
+lang:"de-DE",localService:!0,"default":!0},{name:"Melina",voiceURI:"com.apple.ttsbundle.Melina-compact",lang:"el-GR",localService:!0,"default":!0},{name:"Karen",voiceURI:"com.apple.ttsbundle.Karen-compact",lang:"en-AU",localService:!0,"default":!0},{name:"Daniel",voiceURI:"com.apple.ttsbundle.Daniel-compact",lang:"en-GB",localService:!0,"default":!0},{name:"Moira",voiceURI:"com.apple.ttsbundle.Moira-compact",lang:"en-IE",localService:!0,"default":!0},{name:"Samantha (Enhanced)",voiceURI:"com.apple.ttsbundle.Samantha-premium",
+lang:"en-US",localService:!0,"default":!0},{name:"Samantha",voiceURI:"com.apple.ttsbundle.Samantha-compact",lang:"en-US",localService:!0,"default":!0},{name:"Tessa",voiceURI:"com.apple.ttsbundle.Tessa-compact",lang:"en-ZA",localService:!0,"default":!0},{name:"Monica",voiceURI:"com.apple.ttsbundle.Monica-compact",lang:"es-ES",localService:!0,"default":!0},{name:"Paulina",voiceURI:"com.apple.ttsbundle.Paulina-compact",lang:"es-MX",localService:!0,"default":!0},{name:"Satu",voiceURI:"com.apple.ttsbundle.Satu-compact",
+lang:"fi-FI",localService:!0,"default":!0},{name:"Amelie",voiceURI:"com.apple.ttsbundle.Amelie-compact",lang:"fr-CA",localService:!0,"default":!0},{name:"Thomas",voiceURI:"com.apple.ttsbundle.Thomas-compact",lang:"fr-FR",localService:!0,"default":!0},{name:"Carmit",voiceURI:"com.apple.ttsbundle.Carmit-compact",lang:"he-IL",localService:!0,"default":!0},{name:"Lekha",voiceURI:"com.apple.ttsbundle.Lekha-compact",lang:"hi-IN",localService:!0,"default":!0},{name:"Mariska",voiceURI:"com.apple.ttsbundle.Mariska-compact",
+lang:"hu-HU",localService:!0,"default":!0},{name:"Damayanti",voiceURI:"com.apple.ttsbundle.Damayanti-compact",lang:"id-ID",localService:!0,"default":!0},{name:"Alice",voiceURI:"com.apple.ttsbundle.Alice-compact",lang:"it-IT",localService:!0,"default":!0},{name:"Kyoko",voiceURI:"com.apple.ttsbundle.Kyoko-compact",lang:"ja-JP",localService:!0,"default":!0},{name:"Yuna",voiceURI:"com.apple.ttsbundle.Yuna-compact",lang:"ko-KR",localService:!0,"default":!0},{name:"Ellen",voiceURI:"com.apple.ttsbundle.Ellen-compact",
+lang:"nl-BE",localService:!0,"default":!0},{name:"Xander",voiceURI:"com.apple.ttsbundle.Xander-compact",lang:"nl-NL",localService:!0,"default":!0},{name:"Nora",voiceURI:"com.apple.ttsbundle.Nora-compact",lang:"no-NO",localService:!0,"default":!0},{name:"Zosia",voiceURI:"com.apple.ttsbundle.Zosia-compact",lang:"pl-PL",localService:!0,"default":!0},{name:"Luciana",voiceURI:"com.apple.ttsbundle.Luciana-compact",lang:"pt-BR",localService:!0,"default":!0},{name:"Joana",voiceURI:"com.apple.ttsbundle.Joana-compact",
+lang:"pt-PT",localService:!0,"default":!0},{name:"Ioana",voiceURI:"com.apple.ttsbundle.Ioana-compact",lang:"ro-RO",localService:!0,"default":!0},{name:"Milena",voiceURI:"com.apple.ttsbundle.Milena-compact",lang:"ru-RU",localService:!0,"default":!0},{name:"Laura",voiceURI:"com.apple.ttsbundle.Laura-compact",lang:"sk-SK",localService:!0,"default":!0},{name:"Alva",voiceURI:"com.apple.ttsbundle.Alva-compact",lang:"sv-SE",localService:!0,"default":!0},{name:"Kanya",voiceURI:"com.apple.ttsbundle.Kanya-compact",
+lang:"th-TH",localService:!0,"default":!0},{name:"Yelda",voiceURI:"com.apple.ttsbundle.Yelda-compact",lang:"tr-TR",localService:!0,"default":!0},{name:"Ting-Ting",voiceURI:"com.apple.ttsbundle.Ting-Ting-compact",lang:"zh-CN",localService:!0,"default":!0},{name:"Sin-Ji",voiceURI:"com.apple.ttsbundle.Sin-Ji-compact",lang:"zh-HK",localService:!0,"default":!0},{name:"Mei-Jia",voiceURI:"com.apple.ttsbundle.Mei-Jia-compact",lang:"zh-TW",localService:!0,"default":!0}];a.systemvoices=null;a.CHARACTER_LIMIT=
+100;a.VOICESUPPORT_ATTEMPTLIMIT=5;a.voicesupport_attempts=0;a.fallbackMode=!1;a.WORDS_PER_MINUTE=130;a.fallback_parts=null;a.fallback_part_index=0;a.fallback_audio=null;a.fallback_playbackrate=1;a.def_fallback_playbackrate=a.fallback_playbackrate;a.fallback_audiopool=[];a.msgparameters=null;a.timeoutId=null;a.OnLoad_callbacks=[];a.useTimer=!1;a.utterances=[];a.tstCompiled=function(a){return eval("typeof xy === 'undefined'")};a.fallbackServicePath="https://code.responsivevoice.org/"+(a.tstCompiled()?
+"":"develop/")+"getvoice.php";a.default_rv=a.responsivevoices[0];a.init=function(){a.is_android&&(a.useTimer=!0);a.is_opera||"undefined"===typeof speechSynthesis?(console.log("RV: Voice synthesis not supported"),a.enableFallbackMode()):setTimeout(function(){var b=setInterval(function(){var c=window.speechSynthesis.getVoices();0!=c.length||null!=a.systemvoices&&0!=a.systemvoices.length?(console.log("RV: Voice support ready"),a.systemVoicesReady(c),clearInterval(b)):(console.log("Voice support NOT ready"),
+a.voicesupport_attempts++,a.voicesupport_attempts>a.VOICESUPPORT_ATTEMPTLIMIT&&(clearInterval(b),null!=window.speechSynthesis?a.iOS?(a.iOS9?a.systemVoicesReady(a.cache_ios9_voices):a.systemVoicesReady(a.cache_ios_voices),console.log("RV: Voice support ready (cached)")):(console.log("RV: speechSynthesis present but no system voices found"),a.enableFallbackMode()):a.enableFallbackMode()))},100)},100);a.Dispatch("OnLoad")};a.systemVoicesReady=function(b){a.systemvoices=b;a.mapRVs();null!=a.OnVoiceReady&&
+a.OnVoiceReady.call();a.Dispatch("OnReady");window.hasOwnProperty("dispatchEvent")&&window.dispatchEvent(new Event("ResponsiveVoice_OnReady"))};a.enableFallbackMode=function(){a.fallbackMode=!0;console.log("RV: Enabling fallback mode");a.mapRVs();null!=a.OnVoiceReady&&a.OnVoiceReady.call();a.Dispatch("OnReady");window.hasOwnProperty("dispatchEvent")&&window.dispatchEvent(new Event("ResponsiveVoice_OnReady"))};a.getVoices=function(){for(var b=[],c=0;c<a.responsivevoices.length;c++)b.push({name:a.responsivevoices[c].name});
+return b};a.speak=function(b,c,f){if(a.iOS9&&!a.iOS9_initialized)console.log("Initializing ios9"),setTimeout(function(){a.speak(b,c,f)},100),a.clickEvent(),a.iOS9_initialized=!0;else{a.isPlaying()&&(console.log("Cancelling previous speech"),a.cancel());a.fallbackMode&&0<a.fallback_audiopool.length&&a.clearFallbackPool();b=b.replace(/[\"\`]/gm,"'");a.msgparameters=f||{};a.msgtext=b;a.msgvoicename=c;a.onstartFired=!1;var h=[];if(b.length>a.CHARACTER_LIMIT){for(var e=b;e.length>a.CHARACTER_LIMIT;){var g=
+e.search(/[:!?.;]+/),d="";if(-1==g||g>=a.CHARACTER_LIMIT)g=e.search(/[,]+/);-1==g&&-1==e.search(" ")&&(g=99);if(-1==g||g>=a.CHARACTER_LIMIT)for(var k=e.split(" "),g=0;g<k.length&&!(d.length+k[g].length+1>a.CHARACTER_LIMIT);g++)d+=(0!=g?" ":"")+k[g];else d=e.substr(0,g+1);e=e.substr(d.length,e.length-d.length);h.push(d)}0<e.length&&h.push(e)}else h.push(b);a.multipartText=h;g=null==c?a.default_rv:a.getResponsiveVoice(c);!0===g.deprecated&&console.warn("ResponsiveVoice: Voice "+g.name+" is deprecated and will be removed in future releases");
+e={};if(null!=g.mappedProfile)e=g.mappedProfile;else if(e.systemvoice=a.getMatchedVoice(g),e.collectionvoice={},null==e.systemvoice){console.log("RV: ERROR: No voice found for: "+c+" "+JSON.stringify(g));return}1==e.collectionvoice.fallbackvoice?(a.fallbackMode=!0,a.fallback_parts=[]):a.fallbackMode=!1;a.msgprofile=e;a.utterances=[];for(g=0;g<h.length;g++)if(a.fallbackMode){a.fallback_playbackrate=a.def_fallback_playbackrate;var d=a.selectBest([e.collectionvoice.pitch,e.systemvoice.pitch,1]),k=a.selectBest([a.iOS9?1:null,
+e.collectionvoice.rate,e.systemvoice.rate,1]),l=a.selectBest([e.collectionvoice.volume,e.systemvoice.volume,1]);null!=f&&(d*=null!=f.pitch?f.pitch:1,k*=null!=f.rate?f.rate:1,l*=null!=f.volume?f.volume:1);d/=2;k/=2;l*=2;d=Math.min(Math.max(d,0),1);k=Math.min(Math.max(k,0),1);l=Math.min(Math.max(l,0),1);d=a.fallbackServicePath+"?t="+encodeURIComponent(h[g])+"&tl="+(e.collectionvoice.lang||e.systemvoice.lang||"en-US")+"&sv="+(e.collectionvoice.service||e.systemvoice.service||"")+"&vn="+(e.collectionvoice.voicename||
+e.systemvoice.voicename||"")+"&pitch="+d.toString()+"&rate="+k.toString()+"&vol="+l.toString();k=document.createElement("AUDIO");k.src=d;k.playbackRate=a.fallback_playbackrate;k.preload="auto";k.load();a.fallback_parts.push(k)}else d=new SpeechSynthesisUtterance,d.voice=e.systemvoice,d.voiceURI=e.systemvoice.voiceURI,d.volume=a.selectBest([e.collectionvoice.volume,e.systemvoice.volume,1]),d.rate=a.selectBest([a.iOS9?1:null,e.collectionvoice.rate,e.systemvoice.rate,1]),d.pitch=a.selectBest([e.collectionvoice.pitch,
+e.systemvoice.pitch,1]),d.text=h[g],d.lang=a.selectBest([e.collectionvoice.lang,e.systemvoice.lang]),d.rvIndex=g,d.rvTotal=h.length,0==g&&(d.onstart=a.speech_onstart),a.msgparameters.onendcalled=!1,null!=f?(g<h.length-1&&1<h.length?(d.onend=a.onPartEnd,d.hasOwnProperty("addEventListener")&&d.addEventListener("end",a.onPartEnd)):(d.onend=a.speech_onend,d.hasOwnProperty("addEventListener")&&d.addEventListener("end",a.speech_onend)),d.onerror=f.onerror||function(a){console.log("RV: Unknow Error");console.log(a)},
+d.onpause=f.onpause,d.onresume=f.onresume,d.onmark=f.onmark,d.onboundary=f.onboundary||a.onboundary,d.pitch=null!=f.pitch?f.pitch:d.pitch,d.rate=a.iOS?(null!=f.rate?f.rate*f.rate:1)*d.rate:(null!=f.rate?f.rate:1)*d.rate,d.volume=null!=f.volume?f.volume:d.volume):(d.onend=a.speech_onend,d.onerror=function(a){console.log("RV: Unknow Error");console.log(a)}),a.utterances.push(d),0==g&&(a.currentMsg=d),console.log(d),a.tts_speak(d);a.fallbackMode&&(a.fallback_part_index=0,a.fallback_startPart())}};a.startTimeout=
+function(b,c){var f=a.msgprofile.collectionvoice.timerSpeed;null==a.msgprofile.collectionvoice.timerSpeed&&(f=1);if(!(0>=f)){var h=b.split(/\s+/).length,e=(b.match(/[^ ]/igm)||b).length,f=60/a.WORDS_PER_MINUTE*f*1E3*(e/h/5.1)*h;3>h&&(f=4E3);3E3>f&&(f=3E3);a.timeoutId=setTimeout(c,f)}};a.checkAndCancelTimeout=function(){null!=a.timeoutId&&(clearTimeout(a.timeoutId),a.timeoutId=null)};a.speech_timedout=function(){a.cancel();a.cancelled=!1;a.speech_onend()};a.speech_onend=function(){a.checkAndCancelTimeout();
+!0===a.cancelled?a.cancelled=!1:null!=a.msgparameters&&null!=a.msgparameters.onend&&1!=a.msgparameters.onendcalled&&(a.msgparameters.onendcalled=!0,a.msgparameters.onend())};a.speech_onstart=function(){if(!a.onstartFired){a.onstartFired=!0;if(a.iOS||a.is_safari||a.useTimer)a.fallbackMode||a.startTimeout(a.msgtext,a.speech_timedout);a.msgparameters.onendcalled=!1;if(null!=a.msgparameters&&null!=a.msgparameters.onstart)a.msgparameters.onstart()}};a.fallback_startPart=function(){0==a.fallback_part_index&&
+a.speech_onstart();a.fallback_audio=a.fallback_parts[a.fallback_part_index];if(null==a.fallback_audio)console.log("RV: Fallback Audio is not available");else{var b=a.fallback_audio;a.fallback_audiopool.push(b);setTimeout(function(){b.playbackRate=a.fallback_playbackrate},50);b.onloadedmetadata=function(){b.play();b.playbackRate=a.fallback_playbackrate};a.fallback_audio.play();a.fallback_audio.addEventListener("ended",a.fallback_finishPart);a.useTimer&&a.startTimeout(a.multipartText[a.fallback_part_index],
+a.fallback_finishPart)}};a.fallback_finishPart=function(b){a.checkAndCancelTimeout();a.fallback_part_index<a.fallback_parts.length-1?(a.fallback_part_index++,a.fallback_startPart()):a.speech_onend()};a.cancel=function(){a.checkAndCancelTimeout();a.fallbackMode?(null!=a.fallback_audio&&a.fallback_audio.pause(),a.clearFallbackPool()):(a.cancelled=!0,speechSynthesis.cancel())};a.voiceSupport=function(){return"speechSynthesis"in window};a.OnFinishedPlaying=function(b){if(null!=a.msgparameters&&null!=
+a.msgparameters.onend)a.msgparameters.onend()};a.setDefaultVoice=function(b){b=a.getResponsiveVoice(b);null!=b&&(a.default_rv=b)};a.mapRVs=function(){for(var b=0;b<a.responsivevoices.length;b++)for(var c=a.responsivevoices[b],f=0;f<c.voiceIDs.length;f++){var h=a.voicecollection[c.voiceIDs[f]];if(1!=h.fallbackvoice){var e=a.getSystemVoice(h.name);if(null!=e){c.mappedProfile={systemvoice:e,collectionvoice:h};break}}else{c.mappedProfile={systemvoice:{},collectionvoice:h};break}}};a.getMatchedVoice=function(b){for(var c=
+0;c<b.voiceIDs.length;c++){var f=a.getSystemVoice(a.voicecollection[b.voiceIDs[c]].name);if(null!=f)return f}return null};a.getSystemVoice=function(b){if("undefined"===typeof a.systemvoices||null===a.systemvoices)return null;for(var c=0;c<a.systemvoices.length;c++)if(a.systemvoices[c].name==b)return a.systemvoices[c];return null};a.getResponsiveVoice=function(b){for(var c=0;c<a.responsivevoices.length;c++)if(a.responsivevoices[c].name==b)return a.responsivevoices[c];return null};a.Dispatch=function(b){if(a.hasOwnProperty(b+
+"_callbacks")&&null!=a[b+"_callbacks"]&&0<a[b+"_callbacks"].length){for(var c=a[b+"_callbacks"],f=0;f<c.length;f++)c[f]();return!0}var h=b+"_callbacks_timeout",e=b+"_callbacks_timeoutCount";a.hasOwnProperty(h)||(a[e]=10,a[h]=setInterval(function(){--a[e];(a.Dispatch(b)||0>a[e])&&clearTimeout(a[h])},50));return!1};a.AddEventListener=function(b,c){a.hasOwnProperty(b+"_callbacks")||(a[b+"_callbacks"]=[]);a[b+"_callbacks"].push(c)};a.addEventListener=a.AddEventListener;a.clickEvent=function(){if(a.iOS&&
+!a.iOS_initialized){console.log("Initializing iOS click event");var b=new SpeechSynthesisUtterance(" ");speechSynthesis.speak(b);a.iOS_initialized=!0}};a.isPlaying=function(){return a.fallbackMode?null!=a.fallback_audio&&!a.fallback_audio.ended&&!a.fallback_audio.paused:speechSynthesis.speaking};a.clearFallbackPool=function(){for(var b=0;b<a.fallback_audiopool.length;b++)null!=a.fallback_audiopool[b]&&(a.fallback_audiopool[b].pause(),a.fallback_audiopool[b].src="");a.fallback_audiopool=[]};"complete"===
+document.readyState?a.init():document.addEventListener("DOMContentLoaded",function(){a.init()});a.selectBest=function(a){for(var c=0;c<a.length;c++)if(null!=a[c])return a[c];return null};a.pause=function(){a.fallbackMode?null!=a.fallback_audio&&a.fallback_audio.pause():speechSynthesis.pause()};a.resume=function(){a.fallbackMode?null!=a.fallback_audio&&a.fallback_audio.play():speechSynthesis.resume()};a.tts_speak=function(b){setTimeout(function(){a.cancelled=!1;speechSynthesis.speak(b)},.01)};a.setVolume=
+function(b){if(a.isPlaying())if(a.fallbackMode){for(var c=0;c<a.fallback_parts.length;c++)a.fallback_parts[c].volume=b;for(c=0;c<a.fallback_audiopool.length;c++)a.fallback_audiopool[c].volume=b;a.fallback_audio.volume=b}else for(c=0;c<a.utterances.length;c++)a.utterances[c].volume=b};a.onPartEnd=function(b){if(null!=a.msgparameters&&null!=a.msgparameters.onchuckend)a.msgparameters.onchuckend();a.Dispatch("OnPartEnd");b=a.utterances.indexOf(b.utterance);a.currentMsg=a.utterances[b+1]};a.onboundary=
+function(b){console.log("On Boundary");a.iOS&&!a.onstartFired&&a.speech_onstart()}},responsiveVoice=new ResponsiveVoice;module.exports=ResponsiveVoice;
+
+},{}],3:[function(require,module,exports){
+/*!
+  Copyright (c) 2016 Jed Watson.
+  Licensed under the MIT License (MIT), see
+  http://jedwatson.github.io/classnames
+*/
+/* global define */
+
+(function () {
+	'use strict';
+
+	var hasOwn = {}.hasOwnProperty;
+
+	function classNames () {
+		var classes = [];
+
+		for (var i = 0; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (!arg) continue;
+
+			var argType = typeof arg;
+
+			if (argType === 'string' || argType === 'number') {
+				classes.push(arg);
+			} else if (Array.isArray(arg)) {
+				classes.push(classNames.apply(null, arg));
+			} else if (argType === 'object') {
+				for (var key in arg) {
+					if (hasOwn.call(arg, key) && arg[key]) {
+						classes.push(key);
+					}
+				}
+			}
+		}
+
+		return classes.join(' ');
+	}
+
+	if (typeof module !== 'undefined' && module.exports) {
+		module.exports = classNames;
+	} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
+		// register as 'classnames', consistent with npm package name
+		define('classnames', [], function () {
+			return classNames;
+		});
+	} else {
+		window.classNames = classNames;
+	}
+}());
+
+},{}],4:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -916,70 +532,123 @@ module.exports = RCSS;
  * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
  * Available under MIT license <http://lodash.com/license>
  */
-var baseCreateCallback = require('lodash._basecreatecallback'),
-    keys = require('lodash.keys'),
-    objectTypes = require('lodash._objecttypes');
+
+/** Used to pool arrays and objects used internally */
+var arrayPool = [];
+
+module.exports = arrayPool;
+
+},{}],5:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var baseCreate = require('lodash._basecreate'),
+    isObject = require('lodash.isobject'),
+    setBindData = require('lodash._setbinddata'),
+    slice = require('lodash._slice');
 
 /**
- * Assigns own enumerable properties of source object(s) to the destination
- * object. Subsequent sources will overwrite property assignments of previous
- * sources. If a callback is provided it will be executed to produce the
- * assigned values. The callback is bound to `thisArg` and invoked with two
- * arguments; (objectValue, sourceValue).
+ * Used for `Array` method references.
  *
- * @static
- * @memberOf _
- * @type Function
- * @alias extend
- * @category Objects
- * @param {Object} object The destination object.
- * @param {...Object} [source] The source objects.
- * @param {Function} [callback] The function to customize assigning values.
- * @param {*} [thisArg] The `this` binding of `callback`.
- * @returns {Object} Returns the destination object.
- * @example
- *
- * _.assign({ 'name': 'fred' }, { 'employer': 'slate' });
- * // => { 'name': 'fred', 'employer': 'slate' }
- *
- * var defaults = _.partialRight(_.assign, function(a, b) {
- *   return typeof a == 'undefined' ? b : a;
- * });
- *
- * var object = { 'name': 'barney' };
- * defaults(object, { 'name': 'fred', 'employer': 'slate' });
- * // => { 'name': 'barney', 'employer': 'slate' }
+ * Normally `Array.prototype` would suffice, however, using an array literal
+ * avoids issues in Narwhal.
  */
-var assign = function(object, source, guard) {
-  var index, iterable = object, result = iterable;
-  if (!iterable) return result;
-  var args = arguments,
-      argsIndex = 0,
-      argsLength = typeof guard == 'number' ? 2 : args.length;
-  if (argsLength > 3 && typeof args[argsLength - 2] == 'function') {
-    var callback = baseCreateCallback(args[--argsLength - 1], args[argsLength--], 2);
-  } else if (argsLength > 2 && typeof args[argsLength - 1] == 'function') {
-    callback = args[--argsLength];
-  }
-  while (++argsIndex < argsLength) {
-    iterable = args[argsIndex];
-    if (iterable && objectTypes[typeof iterable]) {
-    var ownIndex = -1,
-        ownProps = objectTypes[typeof iterable] && keys(iterable),
-        length = ownProps ? ownProps.length : 0;
+var arrayRef = [];
 
-    while (++ownIndex < length) {
-      index = ownProps[ownIndex];
-      result[index] = callback ? callback(result[index], iterable[index]) : iterable[index];
+/** Native method shortcuts */
+var push = arrayRef.push;
+
+/**
+ * The base implementation of `_.bind` that creates the bound function and
+ * sets its meta data.
+ *
+ * @private
+ * @param {Array} bindData The bind data array.
+ * @returns {Function} Returns the new bound function.
+ */
+function baseBind(bindData) {
+  var func = bindData[0],
+      partialArgs = bindData[2],
+      thisArg = bindData[4];
+
+  function bound() {
+    // `Function#bind` spec
+    // http://es5.github.io/#x15.3.4.5
+    if (partialArgs) {
+      // avoid `arguments` object deoptimizations by using `slice` instead
+      // of `Array.prototype.slice.call` and not assigning `arguments` to a
+      // variable as a ternary expression
+      var args = slice(partialArgs);
+      push.apply(args, arguments);
     }
+    // mimic the constructor's `return` behavior
+    // http://es5.github.io/#x13.2.2
+    if (this instanceof bound) {
+      // ensure `new bound` is an instance of `func`
+      var thisBinding = baseCreate(func.prototype),
+          result = func.apply(thisBinding, args || arguments);
+      return isObject(result) ? result : thisBinding;
     }
+    return func.apply(thisArg, args || arguments);
   }
-  return result
-};
+  setBindData(bound, bindData);
+  return bound;
+}
 
-module.exports = assign;
+module.exports = baseBind;
 
-},{"lodash._basecreatecallback":8,"lodash._objecttypes":29,"lodash.keys":30}],8:[function(require,module,exports){
+},{"lodash._basecreate":6,"lodash._setbinddata":19,"lodash._slice":21,"lodash.isobject":31}],6:[function(require,module,exports){
+(function (global){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var isNative = require('lodash._isnative'),
+    isObject = require('lodash.isobject'),
+    noop = require('lodash.noop');
+
+/* Native method shortcuts for methods with the same name as other `lodash` methods */
+var nativeCreate = isNative(nativeCreate = Object.create) && nativeCreate;
+
+/**
+ * The base implementation of `_.create` without support for assigning
+ * properties to the created object.
+ *
+ * @private
+ * @param {Object} prototype The object to inherit from.
+ * @returns {Object} Returns the new object.
+ */
+function baseCreate(prototype, properties) {
+  return isObject(prototype) ? nativeCreate(prototype) : {};
+}
+// fallback for browsers without `Object.create`
+if (!nativeCreate) {
+  baseCreate = (function() {
+    function Object() {}
+    return function(prototype) {
+      if (isObject(prototype)) {
+        Object.prototype = prototype;
+        var result = new Object;
+        Object.prototype = null;
+      }
+      return result || global.Object();
+    };
+  }());
+}
+
+module.exports = baseCreate;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"lodash._isnative":14,"lodash.isobject":31,"lodash.noop":33}],7:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -1061,419 +730,7 @@ function baseCreateCallback(func, thisArg, argCount) {
 
 module.exports = baseCreateCallback;
 
-},{"lodash._setbinddata":9,"lodash.bind":12,"lodash.identity":26,"lodash.support":27}],9:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var isNative = require('lodash._isnative'),
-    noop = require('lodash.noop');
-
-/** Used as the property descriptor for `__bindData__` */
-var descriptor = {
-  'configurable': false,
-  'enumerable': false,
-  'value': null,
-  'writable': false
-};
-
-/** Used to set meta data on functions */
-var defineProperty = (function() {
-  // IE 8 only accepts DOM elements
-  try {
-    var o = {},
-        func = isNative(func = Object.defineProperty) && func,
-        result = func(o, o, o) && func;
-  } catch(e) { }
-  return result;
-}());
-
-/**
- * Sets `this` binding data on a given function.
- *
- * @private
- * @param {Function} func The function to set data on.
- * @param {Array} value The data array to set.
- */
-var setBindData = !defineProperty ? noop : function(func, value) {
-  descriptor.value = value;
-  defineProperty(func, '__bindData__', descriptor);
-};
-
-module.exports = setBindData;
-
-},{"lodash._isnative":10,"lodash.noop":11}],10:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/** Used for native method references */
-var objectProto = Object.prototype;
-
-/** Used to resolve the internal [[Class]] of values */
-var toString = objectProto.toString;
-
-/** Used to detect if a method is native */
-var reNative = RegExp('^' +
-  String(toString)
-    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/toString| for [^\]]+/g, '.*?') + '$'
-);
-
-/**
- * Checks if `value` is a native function.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if the `value` is a native function, else `false`.
- */
-function isNative(value) {
-  return typeof value == 'function' && reNative.test(value);
-}
-
-module.exports = isNative;
-
-},{}],11:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * A no-operation function.
- *
- * @static
- * @memberOf _
- * @category Utilities
- * @example
- *
- * var object = { 'name': 'fred' };
- * _.noop(object) === undefined;
- * // => true
- */
-function noop() {
-  // no operation performed
-}
-
-module.exports = noop;
-
-},{}],12:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var createWrapper = require('lodash._createwrapper'),
-    slice = require('lodash._slice');
-
-/**
- * Creates a function that, when called, invokes `func` with the `this`
- * binding of `thisArg` and prepends any additional `bind` arguments to those
- * provided to the bound function.
- *
- * @static
- * @memberOf _
- * @category Functions
- * @param {Function} func The function to bind.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {...*} [arg] Arguments to be partially applied.
- * @returns {Function} Returns the new bound function.
- * @example
- *
- * var func = function(greeting) {
- *   return greeting + ' ' + this.name;
- * };
- *
- * func = _.bind(func, { 'name': 'fred' }, 'hi');
- * func();
- * // => 'hi fred'
- */
-function bind(func, thisArg) {
-  return arguments.length > 2
-    ? createWrapper(func, 17, slice(arguments, 2), null, thisArg)
-    : createWrapper(func, 1, null, null, thisArg);
-}
-
-module.exports = bind;
-
-},{"lodash._createwrapper":13,"lodash._slice":25}],13:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var baseBind = require('lodash._basebind'),
-    baseCreateWrapper = require('lodash._basecreatewrapper'),
-    isFunction = require('lodash.isfunction'),
-    slice = require('lodash._slice');
-
-/**
- * Used for `Array` method references.
- *
- * Normally `Array.prototype` would suffice, however, using an array literal
- * avoids issues in Narwhal.
- */
-var arrayRef = [];
-
-/** Native method shortcuts */
-var push = arrayRef.push,
-    unshift = arrayRef.unshift;
-
-/**
- * Creates a function that, when called, either curries or invokes `func`
- * with an optional `this` binding and partially applied arguments.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of method flags to compose.
- *  The bitmask may be composed of the following flags:
- *  1 - `_.bind`
- *  2 - `_.bindKey`
- *  4 - `_.curry`
- *  8 - `_.curry` (bound)
- *  16 - `_.partial`
- *  32 - `_.partialRight`
- * @param {Array} [partialArgs] An array of arguments to prepend to those
- *  provided to the new function.
- * @param {Array} [partialRightArgs] An array of arguments to append to those
- *  provided to the new function.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new function.
- */
-function createWrapper(func, bitmask, partialArgs, partialRightArgs, thisArg, arity) {
-  var isBind = bitmask & 1,
-      isBindKey = bitmask & 2,
-      isCurry = bitmask & 4,
-      isCurryBound = bitmask & 8,
-      isPartial = bitmask & 16,
-      isPartialRight = bitmask & 32;
-
-  if (!isBindKey && !isFunction(func)) {
-    throw new TypeError;
-  }
-  if (isPartial && !partialArgs.length) {
-    bitmask &= ~16;
-    isPartial = partialArgs = false;
-  }
-  if (isPartialRight && !partialRightArgs.length) {
-    bitmask &= ~32;
-    isPartialRight = partialRightArgs = false;
-  }
-  var bindData = func && func.__bindData__;
-  if (bindData && bindData !== true) {
-    // clone `bindData`
-    bindData = slice(bindData);
-    if (bindData[2]) {
-      bindData[2] = slice(bindData[2]);
-    }
-    if (bindData[3]) {
-      bindData[3] = slice(bindData[3]);
-    }
-    // set `thisBinding` is not previously bound
-    if (isBind && !(bindData[1] & 1)) {
-      bindData[4] = thisArg;
-    }
-    // set if previously bound but not currently (subsequent curried functions)
-    if (!isBind && bindData[1] & 1) {
-      bitmask |= 8;
-    }
-    // set curried arity if not yet set
-    if (isCurry && !(bindData[1] & 4)) {
-      bindData[5] = arity;
-    }
-    // append partial left arguments
-    if (isPartial) {
-      push.apply(bindData[2] || (bindData[2] = []), partialArgs);
-    }
-    // append partial right arguments
-    if (isPartialRight) {
-      unshift.apply(bindData[3] || (bindData[3] = []), partialRightArgs);
-    }
-    // merge flags
-    bindData[1] |= bitmask;
-    return createWrapper.apply(null, bindData);
-  }
-  // fast path for `_.bind`
-  var creater = (bitmask == 1 || bitmask === 17) ? baseBind : baseCreateWrapper;
-  return creater([func, bitmask, partialArgs, partialRightArgs, thisArg, arity]);
-}
-
-module.exports = createWrapper;
-
-},{"lodash._basebind":14,"lodash._basecreatewrapper":19,"lodash._slice":25,"lodash.isfunction":24}],14:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var baseCreate = require('lodash._basecreate'),
-    isObject = require('lodash.isobject'),
-    setBindData = require('lodash._setbinddata'),
-    slice = require('lodash._slice');
-
-/**
- * Used for `Array` method references.
- *
- * Normally `Array.prototype` would suffice, however, using an array literal
- * avoids issues in Narwhal.
- */
-var arrayRef = [];
-
-/** Native method shortcuts */
-var push = arrayRef.push;
-
-/**
- * The base implementation of `_.bind` that creates the bound function and
- * sets its meta data.
- *
- * @private
- * @param {Array} bindData The bind data array.
- * @returns {Function} Returns the new bound function.
- */
-function baseBind(bindData) {
-  var func = bindData[0],
-      partialArgs = bindData[2],
-      thisArg = bindData[4];
-
-  function bound() {
-    // `Function#bind` spec
-    // http://es5.github.io/#x15.3.4.5
-    if (partialArgs) {
-      // avoid `arguments` object deoptimizations by using `slice` instead
-      // of `Array.prototype.slice.call` and not assigning `arguments` to a
-      // variable as a ternary expression
-      var args = slice(partialArgs);
-      push.apply(args, arguments);
-    }
-    // mimic the constructor's `return` behavior
-    // http://es5.github.io/#x13.2.2
-    if (this instanceof bound) {
-      // ensure `new bound` is an instance of `func`
-      var thisBinding = baseCreate(func.prototype),
-          result = func.apply(thisBinding, args || arguments);
-      return isObject(result) ? result : thisBinding;
-    }
-    return func.apply(thisArg, args || arguments);
-  }
-  setBindData(bound, bindData);
-  return bound;
-}
-
-module.exports = baseBind;
-
-},{"lodash._basecreate":15,"lodash._setbinddata":9,"lodash._slice":25,"lodash.isobject":18}],15:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var isNative = require('lodash._isnative'),
-    isObject = require('lodash.isobject'),
-    noop = require('lodash.noop');
-
-/* Native method shortcuts for methods with the same name as other `lodash` methods */
-var nativeCreate = isNative(nativeCreate = Object.create) && nativeCreate;
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} prototype The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-function baseCreate(prototype, properties) {
-  return isObject(prototype) ? nativeCreate(prototype) : {};
-}
-// fallback for browsers without `Object.create`
-if (!nativeCreate) {
-  baseCreate = (function() {
-    function Object() {}
-    return function(prototype) {
-      if (isObject(prototype)) {
-        Object.prototype = prototype;
-        var result = new Object;
-        Object.prototype = null;
-      }
-      return result || global.Object();
-    };
-  }());
-}
-
-module.exports = baseCreate;
-
-},{"lodash._isnative":16,"lodash.isobject":18,"lodash.noop":17}],16:[function(require,module,exports){
-module.exports=require(10)
-},{}],17:[function(require,module,exports){
-module.exports=require(11)
-},{}],18:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var objectTypes = require('lodash._objecttypes');
-
-/**
- * Checks if `value` is the language type of Object.
- * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @category Objects
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if the `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(1);
- * // => false
- */
-function isObject(value) {
-  // check if the value is the ECMAScript language type of Object
-  // http://es5.github.io/#x8
-  // and avoid a V8 bug
-  // http://code.google.com/p/v8/issues/detail?id=2291
-  return !!(value && objectTypes[typeof value]);
-}
-
-module.exports = isObject;
-
-},{"lodash._objecttypes":29}],19:[function(require,module,exports){
+},{"lodash._setbinddata":19,"lodash.bind":23,"lodash.identity":29,"lodash.support":35}],8:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -1553,1033 +810,7 @@ function baseCreateWrapper(bindData) {
 
 module.exports = baseCreateWrapper;
 
-},{"lodash._basecreate":20,"lodash._setbinddata":9,"lodash._slice":25,"lodash.isobject":23}],20:[function(require,module,exports){
-module.exports=require(15)
-},{"lodash._isnative":21,"lodash.isobject":23,"lodash.noop":22}],21:[function(require,module,exports){
-module.exports=require(10)
-},{}],22:[function(require,module,exports){
-module.exports=require(11)
-},{}],23:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":29}],24:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * Checks if `value` is a function.
- *
- * @static
- * @memberOf _
- * @category Objects
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if the `value` is a function, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- */
-function isFunction(value) {
-  return typeof value == 'function';
-}
-
-module.exports = isFunction;
-
-},{}],25:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * Slices the `collection` from the `start` index up to, but not including,
- * the `end` index.
- *
- * Note: This function is used instead of `Array#slice` to support node lists
- * in IE < 9 and to ensure dense arrays are returned.
- *
- * @private
- * @param {Array|Object|string} collection The collection to slice.
- * @param {number} start The start index.
- * @param {number} end The end index.
- * @returns {Array} Returns the new array.
- */
-function slice(array, start, end) {
-  start || (start = 0);
-  if (typeof end == 'undefined') {
-    end = array ? array.length : 0;
-  }
-  var index = -1,
-      length = end - start || 0,
-      result = Array(length < 0 ? 0 : length);
-
-  while (++index < length) {
-    result[index] = array[start + index];
-  }
-  return result;
-}
-
-module.exports = slice;
-
-},{}],26:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * This method returns the first argument provided to it.
- *
- * @static
- * @memberOf _
- * @category Utilities
- * @param {*} value Any value.
- * @returns {*} Returns `value`.
- * @example
- *
- * var object = { 'name': 'fred' };
- * _.identity(object) === object;
- * // => true
- */
-function identity(value) {
-  return value;
-}
-
-module.exports = identity;
-
-},{}],27:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var isNative = require('lodash._isnative');
-
-/** Used to detect functions containing a `this` reference */
-var reThis = /\bthis\b/;
-
-/**
- * An object used to flag environments features.
- *
- * @static
- * @memberOf _
- * @type Object
- */
-var support = {};
-
-/**
- * Detect if functions can be decompiled by `Function#toString`
- * (all but PS3 and older Opera mobile browsers & avoided in Windows 8 apps).
- *
- * @memberOf _.support
- * @type boolean
- */
-support.funcDecomp = !isNative(global.WinRTError) && reThis.test(function() { return this; });
-
-/**
- * Detect if `Function#name` is supported (all but IE).
- *
- * @memberOf _.support
- * @type boolean
- */
-support.funcNames = typeof Function.name == 'string';
-
-module.exports = support;
-
-},{"lodash._isnative":28}],28:[function(require,module,exports){
-module.exports=require(10)
-},{}],29:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/** Used to determine if values are of the language type Object */
-var objectTypes = {
-  'boolean': false,
-  'function': true,
-  'object': true,
-  'number': false,
-  'string': false,
-  'undefined': false
-};
-
-module.exports = objectTypes;
-
-},{}],30:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var isNative = require('lodash._isnative'),
-    isObject = require('lodash.isobject'),
-    shimKeys = require('lodash._shimkeys');
-
-/* Native method shortcuts for methods with the same name as other `lodash` methods */
-var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
-
-/**
- * Creates an array composed of the own enumerable property names of an object.
- *
- * @static
- * @memberOf _
- * @category Objects
- * @param {Object} object The object to inspect.
- * @returns {Array} Returns an array of property names.
- * @example
- *
- * _.keys({ 'one': 1, 'two': 2, 'three': 3 });
- * // => ['one', 'two', 'three'] (property order is not guaranteed across environments)
- */
-var keys = !nativeKeys ? shimKeys : function(object) {
-  if (!isObject(object)) {
-    return [];
-  }
-  return nativeKeys(object);
-};
-
-module.exports = keys;
-
-},{"lodash._isnative":31,"lodash._shimkeys":32,"lodash.isobject":33}],31:[function(require,module,exports){
-module.exports=require(10)
-},{}],32:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var objectTypes = require('lodash._objecttypes');
-
-/** Used for native method references */
-var objectProto = Object.prototype;
-
-/** Native method shortcuts */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * A fallback implementation of `Object.keys` which produces an array of the
- * given object's own enumerable property names.
- *
- * @private
- * @type Function
- * @param {Object} object The object to inspect.
- * @returns {Array} Returns an array of property names.
- */
-var shimKeys = function(object) {
-  var index, iterable = object, result = [];
-  if (!iterable) return result;
-  if (!(objectTypes[typeof object])) return result;
-    for (index in iterable) {
-      if (hasOwnProperty.call(iterable, index)) {
-        result.push(index);
-      }
-    }
-  return result
-};
-
-module.exports = shimKeys;
-
-},{"lodash._objecttypes":29}],33:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":29}],34:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var escapeHtmlChar = require('lodash._escapehtmlchar'),
-    keys = require('lodash.keys'),
-    reUnescapedHtml = require('lodash._reunescapedhtml');
-
-/**
- * Converts the characters `&`, `<`, `>`, `"`, and `'` in `string` to their
- * corresponding HTML entities.
- *
- * @static
- * @memberOf _
- * @category Utilities
- * @param {string} string The string to escape.
- * @returns {string} Returns the escaped string.
- * @example
- *
- * _.escape('Fred, Wilma, & Pebbles');
- * // => 'Fred, Wilma, &amp; Pebbles'
- */
-function escape(string) {
-  return string == null ? '' : String(string).replace(reUnescapedHtml, escapeHtmlChar);
-}
-
-module.exports = escape;
-
-},{"lodash._escapehtmlchar":35,"lodash._reunescapedhtml":37,"lodash.keys":39}],35:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var htmlEscapes = require('lodash._htmlescapes');
-
-/**
- * Used by `escape` to convert characters to HTML entities.
- *
- * @private
- * @param {string} match The matched character to escape.
- * @returns {string} Returns the escaped character.
- */
-function escapeHtmlChar(match) {
-  return htmlEscapes[match];
-}
-
-module.exports = escapeHtmlChar;
-
-},{"lodash._htmlescapes":36}],36:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * Used to convert characters to HTML entities:
- *
- * Though the `>` character is escaped for symmetry, characters like `>` and `/`
- * don't require escaping in HTML and have no special meaning unless they're part
- * of a tag or an unquoted attribute value.
- * http://mathiasbynens.be/notes/ambiguous-ampersands (under "semi-related fun fact")
- */
-var htmlEscapes = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;'
-};
-
-module.exports = htmlEscapes;
-
-},{}],37:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var htmlEscapes = require('lodash._htmlescapes'),
-    keys = require('lodash.keys');
-
-/** Used to match HTML entities and HTML characters */
-var reUnescapedHtml = RegExp('[' + keys(htmlEscapes).join('') + ']', 'g');
-
-module.exports = reUnescapedHtml;
-
-},{"lodash._htmlescapes":38,"lodash.keys":39}],38:[function(require,module,exports){
-module.exports=require(36)
-},{}],39:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"lodash._isnative":40,"lodash._shimkeys":41,"lodash.isobject":43}],40:[function(require,module,exports){
-module.exports=require(10)
-},{}],41:[function(require,module,exports){
-module.exports=require(32)
-},{"lodash._objecttypes":42}],42:[function(require,module,exports){
-module.exports=require(29)
-},{}],43:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":44}],44:[function(require,module,exports){
-module.exports=require(29)
-},{}],45:[function(require,module,exports){
-var _validCSSProps = {
-  'alignment-adjust': true,
-  'alignment-baseline': true,
-  'animation': true,
-  'animation-delay': true,
-  'animation-direction': true,
-  'animation-duration': true,
-  'animation-iteration-count': true,
-  'animation-name': true,
-  'animation-play-state': true,
-  'animation-timing-function': true,
-  'appearance': true,
-  'backface-visibility': true,
-  'background': true,
-  'background-attachment': true,
-  'background-clip': true,
-  'background-color': true,
-  'background-image': true,
-  'background-origin': true,
-  'background-position': true,
-  'background-repeat': true,
-  'background-size': true,
-  'baseline-shift': true,
-  'bookmark-label': true,
-  'bookmark-level': true,
-  'bookmark-target': true,
-  'border': true,
-  'border-bottom': true,
-  'border-bottom-color': true,
-  'border-bottom-left-radius': true,
-  'border-bottom-right-radius': true,
-  'border-bottom-style': true,
-  'border-bottom-width': true,
-  'border-collapse': true,
-  'border-color': true,
-  'border-image': true,
-  'border-image-outset': true,
-  'border-image-repeat': true,
-  'border-image-slice': true,
-  'border-image-source': true,
-  'border-image-width': true,
-  'border-left': true,
-  'border-left-color': true,
-  'border-left-style': true,
-  'border-left-width': true,
-  'border-radius': true,
-  'border-right': true,
-  'border-right-color': true,
-  'border-right-style': true,
-  'border-right-width': true,
-  'border-spacing': true,
-  'border-style': true,
-  'border-top': true,
-  'border-top-color': true,
-  'border-top-left-radius': true,
-  'border-top-right-radius': true,
-  'border-top-style': true,
-  'border-top-width': true,
-  'border-width': true,
-  'bottom': true,
-  'box-align': true,
-  'box-decoration-break': true,
-  'box-direction': true,
-  'box-flex': true,
-  'box-flex-group': true,
-  'box-lines': true,
-  'box-ordinal-group': true,
-  'box-orient': true,
-  'box-pack': true,
-  'box-shadow': true,
-  'box-sizing': true,
-  'caption-side': true,
-  'clear': true,
-  'clip': true,
-  'color': true,
-  'color-profile': true,
-  'column-count': true,
-  'column-fill': true,
-  'column-gap': true,
-  'column-rule': true,
-  'column-rule-color': true,
-  'column-rule-style': true,
-  'column-rule-width': true,
-  'column-span': true,
-  'column-width': true,
-  'columns': true,
-  'content': true,
-  'counter-increment': true,
-  'counter-reset': true,
-  'crop': true,
-  'cursor': true,
-  'direction': true,
-  'display': true,
-  'dominant-baseline': true,
-  'drop-initial-after-adjust': true,
-  'drop-initial-after-align': true,
-  'drop-initial-before-adjust': true,
-  'drop-initial-before-align': true,
-  'drop-initial-size': true,
-  'drop-initial-value': true,
-  'empty-cells': true,
-  'fit': true,
-  'fit-position': true,
-  'float': true,
-  'float-offset': true,
-  'font': true,
-  'font-family': true,
-  'font-size': true,
-  'font-size-adjust': true,
-  'font-stretch': true,
-  'font-style': true,
-  'font-variant': true,
-  'font-weight': true,
-  'grid-columns': true,
-  'grid-rows': true,
-  'hanging-punctuation': true,
-  'height': true,
-  'hyphenate-after': true,
-  'hyphenate-before': true,
-  'hyphenate-character': true,
-  'hyphenate-lines': true,
-  'hyphenate-resource': true,
-  'hyphens': true,
-  'icon': true,
-  'image-orientation': true,
-  'image-resolution': true,
-  'inline-box-align': true,
-  'left': true,
-  'letter-spacing': true,
-  'line-height': true,
-  'line-stacking': true,
-  'line-stacking-ruby': true,
-  'line-stacking-shift': true,
-  'line-stacking-strategy': true,
-  'list-style': true,
-  'list-style-image': true,
-  'list-style-position': true,
-  'list-style-type': true,
-  'margin': true,
-  'margin-bottom': true,
-  'margin-left': true,
-  'margin-right': true,
-  'margin-top': true,
-  'mark': true,
-  'mark-after': true,
-  'mark-before': true,
-  'marks': true,
-  'marquee-direction': true,
-  'marquee-play-count': true,
-  'marquee-speed': true,
-  'marquee-style': true,
-  'max-height': true,
-  'max-width': true,
-  'min-height': true,
-  'min-width': true,
-  'move-to': true,
-  'nav-down': true,
-  'nav-index': true,
-  'nav-left': true,
-  'nav-right': true,
-  'nav-up': true,
-  'opacity': true,
-  'orphans': true,
-  'outline': true,
-  'outline-color': true,
-  'outline-offset': true,
-  'outline-style': true,
-  'outline-width': true,
-  'overflow': true,
-  'overflow-style': true,
-  'overflow-x': true,
-  'overflow-y': true,
-  'padding': true,
-  'padding-bottom': true,
-  'padding-left': true,
-  'padding-right': true,
-  'padding-top': true,
-  'page': true,
-  'page-break-after': true,
-  'page-break-before': true,
-  'page-break-inside': true,
-  'page-policy': true,
-  'perspective': true,
-  'perspective-origin': true,
-  'phonemes': true,
-  'position': true,
-  'punctuation-trim': true,
-  'quotes': true,
-  'rendering-intent': true,
-  'resize': true,
-  'rest': true,
-  'rest-after': true,
-  'rest-before': true,
-  'right': true,
-  'rotation': true,
-  'rotation-point': true,
-  'ruby-align': true,
-  'ruby-overhang': true,
-  'ruby-position': true,
-  'ruby-span': true,
-  'size': true,
-  'string-set': true,
-  'table-layout': true,
-  'target': true,
-  'target-name': true,
-  'target-new': true,
-  'target-position': true,
-  'text-align': true,
-  'text-align-last': true,
-  'text-decoration': true,
-  'text-height': true,
-  'text-indent': true,
-  'text-justify': true,
-  'text-outline': true,
-  'text-overflow': true,
-  'text-shadow': true,
-  'text-transform': true,
-  'text-wrap': true,
-  'top': true,
-  'transform': true,
-  'transform-origin': true,
-  'transform-style': true,
-  'transition': true,
-  'transition-delay': true,
-  'transition-duration': true,
-  'transition-property': true,
-  'transition-timing-function': true,
-  'unicode-bidi': true,
-  'user-select': true,
-  'vertical-align': true,
-  'visibility': true,
-  'voice-balance': true,
-  'voice-duration': true,
-  'voice-pitch': true,
-  'voice-pitch-range': true,
-  'voice-rate': true,
-  'voice-stress': true,
-  'voice-volume': true,
-  'white-space': true,
-  'widows': true,
-  'width': true,
-  'word-break': true,
-  'word-spacing': true,
-  'word-wrap': true,
-  'z-index': true
-}
-
-var vendorPrefixRegEx = /^-.+-/;
-
-module.exports = function(prop) {
-  if (prop[0] === '-') {
-    return !!_validCSSProps[prop.replace(vendorPrefixRegEx, '')];
-  }
-  return !!_validCSSProps[prop];
-};
-
-},{}],46:[function(require,module,exports){
-var every = require('lodash.every');
-
-function isValidRatio(ratio) {
-    var re = /\d+\/\d+/;
-    return !!ratio.match(re);
-}
-
-function isValidInteger(integer) {
-    var re = /\d+/;
-    return !!integer.match(re);
-}
-
-function isValidLength(length) {
-    var re = /\d+(?:ex|em|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)?$/;
-    return !!length.match(re);
-}
-
-function isValidOrientation(orientation) {
-    return orientation === 'landscape' || orientation === 'portrait';
-}
-
-function isValidScan(scan) {
-    return scan === 'progressive' || scan === 'interlace';
-}
-
-function isValidResolution(resolution) {
-    var re = /(?:\+|-)?(?:\d+|\d*\.\d+)(?:e\d+)?(?:dpi|dpcm|dppx)$/;
-    return !!resolution.match(re);
-}
-
-function isValidValue(value) {
-  return value != null && typeof value !== 'boolean' && value !== '';
-}
-
-var _mediaFeatureValidator = {
-    'width': isValidLength,
-    'min-width': isValidLength,
-    'max-width': isValidLength,
-    'height': isValidLength,
-    'min-height': isValidLength,
-    'max-height': isValidLength,
-    'device-width': isValidLength,
-    'min-device-width': isValidLength,
-    'max-device-width': isValidLength,
-    'device-height': isValidLength,
-    'min-device-height': isValidLength,
-    'max-device-height': isValidLength,
-    'aspect-ratio': isValidRatio,
-    'min-aspect-ratio': isValidRatio,
-    'max-aspect-ratio': isValidRatio,
-    'device-aspect-ratio': isValidRatio,
-    'min-device-aspect-ratio': isValidRatio,
-    'max-device-aspect-ratio': isValidRatio,
-    'color': isValidValue,
-    'min-color': isValidValue,
-    'max-color': isValidValue,
-    'color-index': isValidInteger,
-    'min-color-index': isValidInteger,
-    'max-color-index': isValidInteger,
-    'monochrome': isValidInteger,
-    'min-monochrome': isValidInteger,
-    'max-monochrome': isValidInteger,
-    'resolution': isValidResolution,
-    'min-resolution': isValidResolution,
-    'max-resolution': isValidResolution,
-    'scan': isValidScan,
-    'grid': isValidInteger,
-    'orientation': isValidOrientation
-};
-
-var _validMediaFeatures = {
-    'width': true,
-    'min-width': true,
-    'max-width': true,
-    'height': true,
-    'min-height': true,
-    'max-height': true,
-    'device-width': true,
-    'min-device-width': true,
-    'max-device-width': true,
-    'device-height': true,
-    'min-device-height': true,
-    'max-device-height': true,
-    'aspect-ratio': true,
-    'min-aspect-ratio': true,
-    'max-aspect-ratio': true,
-    'device-aspect-ratio': true,
-    'min-device-aspect-ratio': true,
-    'max-device-aspect-ratio': true,
-    'color': true,
-    'min-color': true,
-    'max-color': true,
-    'color-index': true,
-    'min-color-index': true,
-    'max-color-index': true,
-    'monochrome': true,
-    'min-monochrome': true,
-    'max-monochrome': true,
-    'resolution': true,
-    'min-resolution': true,
-    'max-resolution': true,
-    'scan': true,
-    'grid': true,
-    'orientation': true
-};
-
-var _validMediaTypes = {
-    'all': true,
-    'aural': true,
-    'braille': true,
-    'handheld': true,
-    'print': true,
-    'projection': true,
-    'screen': true,
-    'tty': true,
-    'tv': true,
-    'embossed': true
-};
-
-var _validQualifiers = {
-    'not': true,
-    'only': true
-};
-
-function isValidFeature(feature) {
-    return !!_validMediaFeatures[feature];
-}
-
-function isValidQualifier(qualifier) {
-    return !!_validQualifiers[qualifier];
-}
-
-function isValidMediaType(mediaType) {
-    return !!_validMediaTypes[mediaType];
-}
-
-function isValidQualifiedMediaType(mediaType) {
-    var terms = mediaType.trim().split(/\s+/);
-    switch (terms.length) {
-        case 1:
-            return isValidMediaType(terms[0]);
-        case 2:
-            return isValidQualifier(terms[0]) && isValidMediaType(terms[1]);
-        default:
-            return false;
-    }
-}
-
-function isValidExpression(expression) {
-    if (expression.length < 2) {
-        return false;
-    }
-
-    // Parentheses are required around expressions
-    if (expression[0] !== '(' || expression[expression.length - 1] !== ')') {
-        return false;
-    }
-
-    // Remove parentheses and spacess
-    expression = expression.substring(1, expression.length - 1);
-
-    // Is there a value to accompany the media feature?
-    var featureAndValue = expression.split(/\s*:\s*/);
-    switch (featureAndValue.length) {
-        case 1:
-            var feature = featureAndValue[0].trim();
-            return isValidFeature(feature);
-        case 2:
-            var feature = featureAndValue[0].trim();
-            var value = featureAndValue[1].trim();
-            return isValidFeature(feature) &&
-                   _mediaFeatureValidator[feature](value);
-        default:
-            return false;
-    }
-}
-
-function isValidMediaQuery(query) {
-    var andSplitter = /\s+and\s+/;
-    var queryTerms = query.split(andSplitter);
-    return (isValidQualifiedMediaType(queryTerms[0]) ||
-        isValidExpression(queryTerms[0])) &&
-        every(queryTerms.slice(1), isValidExpression);
-}
-
-function isValidMediaQueryList(mediaQuery) {
-    mediaQuery = mediaQuery.toLowerCase();
-
-    if (mediaQuery.substring(0, 6) !== '@media') {
-        return false;
-    }
-
-    var commaSplitter = /\s*,\s*/;
-    var queryList = mediaQuery.substring(7, mediaQuery.length)
-                              .split(commaSplitter);
-    return every(queryList, isValidMediaQuery);
-}
-
-module.exports = isValidMediaQueryList
-
-},{"lodash.every":47}],47:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var createCallback = require('lodash.createcallback'),
-    forOwn = require('lodash.forown');
-
-/**
- * Checks if the given callback returns truey value for **all** elements of
- * a collection. The callback is bound to `thisArg` and invoked with three
- * arguments; (value, index|key, collection).
- *
- * If a property name is provided for `callback` the created "_.pluck" style
- * callback will return the property value of the given element.
- *
- * If an object is provided for `callback` the created "_.where" style callback
- * will return `true` for elements that have the properties of the given object,
- * else `false`.
- *
- * @static
- * @memberOf _
- * @alias all
- * @category Collections
- * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function|Object|string} [callback=identity] The function called
- *  per iteration. If a property name or object is provided it will be used
- *  to create a "_.pluck" or "_.where" style callback, respectively.
- * @param {*} [thisArg] The `this` binding of `callback`.
- * @returns {boolean} Returns `true` if all elements passed the callback check,
- *  else `false`.
- * @example
- *
- * _.every([true, 1, null, 'yes']);
- * // => false
- *
- * var characters = [
- *   { 'name': 'barney', 'age': 36 },
- *   { 'name': 'fred',   'age': 40 }
- * ];
- *
- * // using "_.pluck" callback shorthand
- * _.every(characters, 'age');
- * // => true
- *
- * // using "_.where" callback shorthand
- * _.every(characters, { 'age': 36 });
- * // => false
- */
-function every(collection, callback, thisArg) {
-  var result = true;
-  callback = createCallback(callback, thisArg, 3);
-
-  var index = -1,
-      length = collection ? collection.length : 0;
-
-  if (typeof length == 'number') {
-    while (++index < length) {
-      if (!(result = !!callback(collection[index], index, collection))) {
-        break;
-      }
-    }
-  } else {
-    forOwn(collection, function(value, index, collection) {
-      return (result = !!callback(value, index, collection));
-    });
-  }
-  return result;
-}
-
-module.exports = every;
-
-},{"lodash.createcallback":48,"lodash.forown":84}],48:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.3 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var baseCreateCallback = require('lodash._basecreatecallback'),
-    baseIsEqual = require('lodash._baseisequal'),
-    isObject = require('lodash.isobject'),
-    keys = require('lodash.keys'),
-    property = require('lodash.property');
-
-/**
- * Produces a callback bound to an optional `thisArg`. If `func` is a property
- * name the created callback will return the property value for a given element.
- * If `func` is an object the created callback will return `true` for elements
- * that contain the equivalent object properties, otherwise it will return `false`.
- *
- * @static
- * @memberOf _
- * @category Utilities
- * @param {*} [func=identity] The value to convert to a callback.
- * @param {*} [thisArg] The `this` binding of the created callback.
- * @param {number} [argCount] The number of arguments the callback accepts.
- * @returns {Function} Returns a callback function.
- * @example
- *
- * var characters = [
- *   { 'name': 'barney', 'age': 36 },
- *   { 'name': 'fred',   'age': 40 }
- * ];
- *
- * // wrap to create custom callback shorthands
- * _.createCallback = _.wrap(_.createCallback, function(func, callback, thisArg) {
- *   var match = /^(.+?)__([gl]t)(.+)$/.exec(callback);
- *   return !match ? func(callback, thisArg) : function(object) {
- *     return match[2] == 'gt' ? object[match[1]] > match[3] : object[match[1]] < match[3];
- *   };
- * });
- *
- * _.filter(characters, 'age__gt38');
- * // => [{ 'name': 'fred', 'age': 40 }]
- */
-function createCallback(func, thisArg, argCount) {
-  var type = typeof func;
-  if (func == null || type == 'function') {
-    return baseCreateCallback(func, thisArg, argCount);
-  }
-  // handle "_.pluck" style callback shorthands
-  if (type != 'object') {
-    return property(func);
-  }
-  var props = keys(func),
-      key = props[0],
-      a = func[key];
-
-  // handle "_.where" style callback shorthands
-  if (props.length == 1 && a === a && !isObject(a)) {
-    // fast path the common case of providing an object with a single
-    // property containing a primitive value
-    return function(object) {
-      var b = object[key];
-      return a === b && (a !== 0 || (1 / a == 1 / b));
-    };
-  }
-  return function(object) {
-    var length = props.length,
-        result = false;
-
-    while (length--) {
-      if (!(result = baseIsEqual(object[props[length]], func[props[length]], null, true))) {
-        break;
-      }
-    }
-    return result;
-  };
-}
-
-module.exports = createCallback;
-
-},{"lodash._basecreatecallback":49,"lodash._baseisequal":68,"lodash.isobject":77,"lodash.keys":79,"lodash.property":83}],49:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"lodash._setbinddata":50,"lodash.bind":53,"lodash.identity":65,"lodash.support":66}],50:[function(require,module,exports){
-module.exports=require(9)
-},{"lodash._isnative":51,"lodash.noop":52}],51:[function(require,module,exports){
-module.exports=require(10)
-},{}],52:[function(require,module,exports){
-module.exports=require(11)
-},{}],53:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"lodash._createwrapper":54,"lodash._slice":64}],54:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"lodash._basebind":55,"lodash._basecreatewrapper":59,"lodash._slice":64,"lodash.isfunction":63}],55:[function(require,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"lodash._basecreate":56,"lodash._setbinddata":50,"lodash._slice":64,"lodash.isobject":77}],56:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"lodash._isnative":57,"lodash.isobject":77,"lodash.noop":58}],57:[function(require,module,exports){
-module.exports=require(10)
-},{}],58:[function(require,module,exports){
-module.exports=require(11)
-},{}],59:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"lodash._basecreate":60,"lodash._setbinddata":50,"lodash._slice":64,"lodash.isobject":77}],60:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"lodash._isnative":61,"lodash.isobject":77,"lodash.noop":62}],61:[function(require,module,exports){
-module.exports=require(10)
-},{}],62:[function(require,module,exports){
-module.exports=require(11)
-},{}],63:[function(require,module,exports){
-module.exports=require(24)
-},{}],64:[function(require,module,exports){
-module.exports=require(25)
-},{}],65:[function(require,module,exports){
-module.exports=require(26)
-},{}],66:[function(require,module,exports){
-module.exports=require(27)
-},{"lodash._isnative":67}],67:[function(require,module,exports){
-module.exports=require(10)
-},{}],68:[function(require,module,exports){
+},{"lodash._basecreate":6,"lodash._setbinddata":19,"lodash._slice":21,"lodash.isobject":31}],9:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2790,7 +1021,139 @@ function baseIsEqual(a, b, callback, isWhere, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"lodash._getarray":69,"lodash._objecttypes":71,"lodash._releasearray":72,"lodash.forin":75,"lodash.isfunction":76}],69:[function(require,module,exports){
+},{"lodash._getarray":12,"lodash._objecttypes":16,"lodash._releasearray":17,"lodash.forin":27,"lodash.isfunction":30}],10:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var baseBind = require('lodash._basebind'),
+    baseCreateWrapper = require('lodash._basecreatewrapper'),
+    isFunction = require('lodash.isfunction'),
+    slice = require('lodash._slice');
+
+/**
+ * Used for `Array` method references.
+ *
+ * Normally `Array.prototype` would suffice, however, using an array literal
+ * avoids issues in Narwhal.
+ */
+var arrayRef = [];
+
+/** Native method shortcuts */
+var push = arrayRef.push,
+    unshift = arrayRef.unshift;
+
+/**
+ * Creates a function that, when called, either curries or invokes `func`
+ * with an optional `this` binding and partially applied arguments.
+ *
+ * @private
+ * @param {Function|string} func The function or method name to reference.
+ * @param {number} bitmask The bitmask of method flags to compose.
+ *  The bitmask may be composed of the following flags:
+ *  1 - `_.bind`
+ *  2 - `_.bindKey`
+ *  4 - `_.curry`
+ *  8 - `_.curry` (bound)
+ *  16 - `_.partial`
+ *  32 - `_.partialRight`
+ * @param {Array} [partialArgs] An array of arguments to prepend to those
+ *  provided to the new function.
+ * @param {Array} [partialRightArgs] An array of arguments to append to those
+ *  provided to the new function.
+ * @param {*} [thisArg] The `this` binding of `func`.
+ * @param {number} [arity] The arity of `func`.
+ * @returns {Function} Returns the new function.
+ */
+function createWrapper(func, bitmask, partialArgs, partialRightArgs, thisArg, arity) {
+  var isBind = bitmask & 1,
+      isBindKey = bitmask & 2,
+      isCurry = bitmask & 4,
+      isCurryBound = bitmask & 8,
+      isPartial = bitmask & 16,
+      isPartialRight = bitmask & 32;
+
+  if (!isBindKey && !isFunction(func)) {
+    throw new TypeError;
+  }
+  if (isPartial && !partialArgs.length) {
+    bitmask &= ~16;
+    isPartial = partialArgs = false;
+  }
+  if (isPartialRight && !partialRightArgs.length) {
+    bitmask &= ~32;
+    isPartialRight = partialRightArgs = false;
+  }
+  var bindData = func && func.__bindData__;
+  if (bindData && bindData !== true) {
+    // clone `bindData`
+    bindData = slice(bindData);
+    if (bindData[2]) {
+      bindData[2] = slice(bindData[2]);
+    }
+    if (bindData[3]) {
+      bindData[3] = slice(bindData[3]);
+    }
+    // set `thisBinding` is not previously bound
+    if (isBind && !(bindData[1] & 1)) {
+      bindData[4] = thisArg;
+    }
+    // set if previously bound but not currently (subsequent curried functions)
+    if (!isBind && bindData[1] & 1) {
+      bitmask |= 8;
+    }
+    // set curried arity if not yet set
+    if (isCurry && !(bindData[1] & 4)) {
+      bindData[5] = arity;
+    }
+    // append partial left arguments
+    if (isPartial) {
+      push.apply(bindData[2] || (bindData[2] = []), partialArgs);
+    }
+    // append partial right arguments
+    if (isPartialRight) {
+      unshift.apply(bindData[3] || (bindData[3] = []), partialRightArgs);
+    }
+    // merge flags
+    bindData[1] |= bitmask;
+    return createWrapper.apply(null, bindData);
+  }
+  // fast path for `_.bind`
+  var creater = (bitmask == 1 || bitmask === 17) ? baseBind : baseCreateWrapper;
+  return creater([func, bitmask, partialArgs, partialRightArgs, thisArg, arity]);
+}
+
+module.exports = createWrapper;
+
+},{"lodash._basebind":5,"lodash._basecreatewrapper":8,"lodash._slice":21,"lodash.isfunction":30}],11:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var htmlEscapes = require('lodash._htmlescapes');
+
+/**
+ * Used by `escape` to convert characters to HTML entities.
+ *
+ * @private
+ * @param {string} match The matched character to escape.
+ * @returns {string} Returns the escaped character.
+ */
+function escapeHtmlChar(match) {
+  return htmlEscapes[match];
+}
+
+module.exports = escapeHtmlChar;
+
+},{"lodash._htmlescapes":13}],12:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2813,7 +1176,7 @@ function getArray() {
 
 module.exports = getArray;
 
-},{"lodash._arraypool":70}],70:[function(require,module,exports){
+},{"lodash._arraypool":4}],13:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2823,14 +1186,98 @@ module.exports = getArray;
  * Available under MIT license <http://lodash.com/license>
  */
 
-/** Used to pool arrays and objects used internally */
-var arrayPool = [];
+/**
+ * Used to convert characters to HTML entities:
+ *
+ * Though the `>` character is escaped for symmetry, characters like `>` and `/`
+ * don't require escaping in HTML and have no special meaning unless they're part
+ * of a tag or an unquoted attribute value.
+ * http://mathiasbynens.be/notes/ambiguous-ampersands (under "semi-related fun fact")
+ */
+var htmlEscapes = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
 
-module.exports = arrayPool;
+module.exports = htmlEscapes;
 
-},{}],71:[function(require,module,exports){
-module.exports=require(29)
-},{}],72:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/** Used for native method references */
+var objectProto = Object.prototype;
+
+/** Used to resolve the internal [[Class]] of values */
+var toString = objectProto.toString;
+
+/** Used to detect if a method is native */
+var reNative = RegExp('^' +
+  String(toString)
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/toString| for [^\]]+/g, '.*?') + '$'
+);
+
+/**
+ * Checks if `value` is a native function.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if the `value` is a native function, else `false`.
+ */
+function isNative(value) {
+  return typeof value == 'function' && reNative.test(value);
+}
+
+module.exports = isNative;
+
+},{}],15:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/** Used as the max size of the `arrayPool` and `objectPool` */
+var maxPoolSize = 40;
+
+module.exports = maxPoolSize;
+
+},{}],16:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/** Used to determine if values are of the language type Object */
+var objectTypes = {
+  'boolean': false,
+  'function': true,
+  'object': true,
+  'number': false,
+  'string': false,
+  'undefined': false
+};
+
+module.exports = objectTypes;
+
+},{}],17:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2857,9 +1304,109 @@ function releaseArray(array) {
 
 module.exports = releaseArray;
 
-},{"lodash._arraypool":73,"lodash._maxpoolsize":74}],73:[function(require,module,exports){
-module.exports=require(70)
-},{}],74:[function(require,module,exports){
+},{"lodash._arraypool":4,"lodash._maxpoolsize":15}],18:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var htmlEscapes = require('lodash._htmlescapes'),
+    keys = require('lodash.keys');
+
+/** Used to match HTML entities and HTML characters */
+var reUnescapedHtml = RegExp('[' + keys(htmlEscapes).join('') + ']', 'g');
+
+module.exports = reUnescapedHtml;
+
+},{"lodash._htmlescapes":13,"lodash.keys":32}],19:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var isNative = require('lodash._isnative'),
+    noop = require('lodash.noop');
+
+/** Used as the property descriptor for `__bindData__` */
+var descriptor = {
+  'configurable': false,
+  'enumerable': false,
+  'value': null,
+  'writable': false
+};
+
+/** Used to set meta data on functions */
+var defineProperty = (function() {
+  // IE 8 only accepts DOM elements
+  try {
+    var o = {},
+        func = isNative(func = Object.defineProperty) && func,
+        result = func(o, o, o) && func;
+  } catch(e) { }
+  return result;
+}());
+
+/**
+ * Sets `this` binding data on a given function.
+ *
+ * @private
+ * @param {Function} func The function to set data on.
+ * @param {Array} value The data array to set.
+ */
+var setBindData = !defineProperty ? noop : function(func, value) {
+  descriptor.value = value;
+  defineProperty(func, '__bindData__', descriptor);
+};
+
+module.exports = setBindData;
+
+},{"lodash._isnative":14,"lodash.noop":33}],20:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var objectTypes = require('lodash._objecttypes');
+
+/** Used for native method references */
+var objectProto = Object.prototype;
+
+/** Native method shortcuts */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * A fallback implementation of `Object.keys` which produces an array of the
+ * given object's own enumerable property names.
+ *
+ * @private
+ * @type Function
+ * @param {Object} object The object to inspect.
+ * @returns {Array} Returns an array of property names.
+ */
+var shimKeys = function(object) {
+  var index, iterable = object, result = [];
+  if (!iterable) return result;
+  if (!(objectTypes[typeof object])) return result;
+    for (index in iterable) {
+      if (hasOwnProperty.call(iterable, index)) {
+        result.push(index);
+      }
+    }
+  return result
+};
+
+module.exports = shimKeys;
+
+},{"lodash._objecttypes":16}],21:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2869,12 +1416,343 @@ module.exports=require(70)
  * Available under MIT license <http://lodash.com/license>
  */
 
-/** Used as the max size of the `arrayPool` and `objectPool` */
-var maxPoolSize = 40;
+/**
+ * Slices the `collection` from the `start` index up to, but not including,
+ * the `end` index.
+ *
+ * Note: This function is used instead of `Array#slice` to support node lists
+ * in IE < 9 and to ensure dense arrays are returned.
+ *
+ * @private
+ * @param {Array|Object|string} collection The collection to slice.
+ * @param {number} start The start index.
+ * @param {number} end The end index.
+ * @returns {Array} Returns the new array.
+ */
+function slice(array, start, end) {
+  start || (start = 0);
+  if (typeof end == 'undefined') {
+    end = array ? array.length : 0;
+  }
+  var index = -1,
+      length = end - start || 0,
+      result = Array(length < 0 ? 0 : length);
 
-module.exports = maxPoolSize;
+  while (++index < length) {
+    result[index] = array[start + index];
+  }
+  return result;
+}
 
-},{}],75:[function(require,module,exports){
+module.exports = slice;
+
+},{}],22:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var baseCreateCallback = require('lodash._basecreatecallback'),
+    keys = require('lodash.keys'),
+    objectTypes = require('lodash._objecttypes');
+
+/**
+ * Assigns own enumerable properties of source object(s) to the destination
+ * object. Subsequent sources will overwrite property assignments of previous
+ * sources. If a callback is provided it will be executed to produce the
+ * assigned values. The callback is bound to `thisArg` and invoked with two
+ * arguments; (objectValue, sourceValue).
+ *
+ * @static
+ * @memberOf _
+ * @type Function
+ * @alias extend
+ * @category Objects
+ * @param {Object} object The destination object.
+ * @param {...Object} [source] The source objects.
+ * @param {Function} [callback] The function to customize assigning values.
+ * @param {*} [thisArg] The `this` binding of `callback`.
+ * @returns {Object} Returns the destination object.
+ * @example
+ *
+ * _.assign({ 'name': 'fred' }, { 'employer': 'slate' });
+ * // => { 'name': 'fred', 'employer': 'slate' }
+ *
+ * var defaults = _.partialRight(_.assign, function(a, b) {
+ *   return typeof a == 'undefined' ? b : a;
+ * });
+ *
+ * var object = { 'name': 'barney' };
+ * defaults(object, { 'name': 'fred', 'employer': 'slate' });
+ * // => { 'name': 'barney', 'employer': 'slate' }
+ */
+var assign = function(object, source, guard) {
+  var index, iterable = object, result = iterable;
+  if (!iterable) return result;
+  var args = arguments,
+      argsIndex = 0,
+      argsLength = typeof guard == 'number' ? 2 : args.length;
+  if (argsLength > 3 && typeof args[argsLength - 2] == 'function') {
+    var callback = baseCreateCallback(args[--argsLength - 1], args[argsLength--], 2);
+  } else if (argsLength > 2 && typeof args[argsLength - 1] == 'function') {
+    callback = args[--argsLength];
+  }
+  while (++argsIndex < argsLength) {
+    iterable = args[argsIndex];
+    if (iterable && objectTypes[typeof iterable]) {
+    var ownIndex = -1,
+        ownProps = objectTypes[typeof iterable] && keys(iterable),
+        length = ownProps ? ownProps.length : 0;
+
+    while (++ownIndex < length) {
+      index = ownProps[ownIndex];
+      result[index] = callback ? callback(result[index], iterable[index]) : iterable[index];
+    }
+    }
+  }
+  return result
+};
+
+module.exports = assign;
+
+},{"lodash._basecreatecallback":7,"lodash._objecttypes":16,"lodash.keys":32}],23:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var createWrapper = require('lodash._createwrapper'),
+    slice = require('lodash._slice');
+
+/**
+ * Creates a function that, when called, invokes `func` with the `this`
+ * binding of `thisArg` and prepends any additional `bind` arguments to those
+ * provided to the bound function.
+ *
+ * @static
+ * @memberOf _
+ * @category Functions
+ * @param {Function} func The function to bind.
+ * @param {*} [thisArg] The `this` binding of `func`.
+ * @param {...*} [arg] Arguments to be partially applied.
+ * @returns {Function} Returns the new bound function.
+ * @example
+ *
+ * var func = function(greeting) {
+ *   return greeting + ' ' + this.name;
+ * };
+ *
+ * func = _.bind(func, { 'name': 'fred' }, 'hi');
+ * func();
+ * // => 'hi fred'
+ */
+function bind(func, thisArg) {
+  return arguments.length > 2
+    ? createWrapper(func, 17, slice(arguments, 2), null, thisArg)
+    : createWrapper(func, 1, null, null, thisArg);
+}
+
+module.exports = bind;
+
+},{"lodash._createwrapper":10,"lodash._slice":21}],24:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.4 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var baseCreateCallback = require('lodash._basecreatecallback'),
+    baseIsEqual = require('lodash._baseisequal'),
+    isObject = require('lodash.isobject'),
+    keys = require('lodash.keys'),
+    property = require('lodash.property');
+
+/**
+ * Produces a callback bound to an optional `thisArg`. If `func` is a property
+ * name the created callback will return the property value for a given element.
+ * If `func` is an object the created callback will return `true` for elements
+ * that contain the equivalent object properties, otherwise it will return `false`.
+ *
+ * @static
+ * @memberOf _
+ * @category Utilities
+ * @param {*} [func=identity] The value to convert to a callback.
+ * @param {*} [thisArg] The `this` binding of the created callback.
+ * @param {number} [argCount] The number of arguments the callback accepts.
+ * @returns {Function} Returns a callback function.
+ * @example
+ *
+ * var characters = [
+ *   { 'name': 'barney', 'age': 36 },
+ *   { 'name': 'fred',   'age': 40 }
+ * ];
+ *
+ * // wrap to create custom callback shorthands
+ * _.createCallback = _.wrap(_.createCallback, function(func, callback, thisArg) {
+ *   var match = /^(.+?)__([gl]t)(.+)$/.exec(callback);
+ *   return !match ? func(callback, thisArg) : function(object) {
+ *     return match[2] == 'gt' ? object[match[1]] > match[3] : object[match[1]] < match[3];
+ *   };
+ * });
+ *
+ * _.filter(characters, 'age__gt38');
+ * // => [{ 'name': 'fred', 'age': 40 }]
+ */
+function createCallback(func, thisArg, argCount) {
+  var type = typeof func;
+  if (func == null || type == 'function') {
+    return baseCreateCallback(func, thisArg, argCount);
+  }
+  // handle "_.pluck" style callback shorthands
+  if (type != 'object') {
+    return property(func);
+  }
+  var props = keys(func),
+      key = props[0],
+      a = func[key];
+
+  // handle "_.where" style callback shorthands
+  if (props.length == 1 && a === a && !isObject(a)) {
+    // fast path the common case of providing an object with a single
+    // property containing a primitive value
+    return function(object) {
+      var b = object[key];
+      return a === b && (a !== 0 || (1 / a == 1 / b));
+    };
+  }
+  return function(object) {
+    var length = props.length,
+        result = false;
+
+    while (length--) {
+      if (!(result = baseIsEqual(object[props[length]], func[props[length]], null, true))) {
+        break;
+      }
+    }
+    return result;
+  };
+}
+
+module.exports = createCallback;
+
+},{"lodash._basecreatecallback":7,"lodash._baseisequal":9,"lodash.isobject":31,"lodash.keys":32,"lodash.property":34}],25:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var escapeHtmlChar = require('lodash._escapehtmlchar'),
+    keys = require('lodash.keys'),
+    reUnescapedHtml = require('lodash._reunescapedhtml');
+
+/**
+ * Converts the characters `&`, `<`, `>`, `"`, and `'` in `string` to their
+ * corresponding HTML entities.
+ *
+ * @static
+ * @memberOf _
+ * @category Utilities
+ * @param {string} string The string to escape.
+ * @returns {string} Returns the escaped string.
+ * @example
+ *
+ * _.escape('Fred, Wilma, & Pebbles');
+ * // => 'Fred, Wilma, &amp; Pebbles'
+ */
+function escape(string) {
+  return string == null ? '' : String(string).replace(reUnescapedHtml, escapeHtmlChar);
+}
+
+module.exports = escape;
+
+},{"lodash._escapehtmlchar":11,"lodash._reunescapedhtml":18,"lodash.keys":32}],26:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var createCallback = require('lodash.createcallback'),
+    forOwn = require('lodash.forown');
+
+/**
+ * Checks if the given callback returns truey value for **all** elements of
+ * a collection. The callback is bound to `thisArg` and invoked with three
+ * arguments; (value, index|key, collection).
+ *
+ * If a property name is provided for `callback` the created "_.pluck" style
+ * callback will return the property value of the given element.
+ *
+ * If an object is provided for `callback` the created "_.where" style callback
+ * will return `true` for elements that have the properties of the given object,
+ * else `false`.
+ *
+ * @static
+ * @memberOf _
+ * @alias all
+ * @category Collections
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function|Object|string} [callback=identity] The function called
+ *  per iteration. If a property name or object is provided it will be used
+ *  to create a "_.pluck" or "_.where" style callback, respectively.
+ * @param {*} [thisArg] The `this` binding of `callback`.
+ * @returns {boolean} Returns `true` if all elements passed the callback check,
+ *  else `false`.
+ * @example
+ *
+ * _.every([true, 1, null, 'yes']);
+ * // => false
+ *
+ * var characters = [
+ *   { 'name': 'barney', 'age': 36 },
+ *   { 'name': 'fred',   'age': 40 }
+ * ];
+ *
+ * // using "_.pluck" callback shorthand
+ * _.every(characters, 'age');
+ * // => true
+ *
+ * // using "_.where" callback shorthand
+ * _.every(characters, { 'age': 36 });
+ * // => false
+ */
+function every(collection, callback, thisArg) {
+  var result = true;
+  callback = createCallback(callback, thisArg, 3);
+
+  var index = -1,
+      length = collection ? collection.length : 0;
+
+  if (typeof length == 'number') {
+    while (++index < length) {
+      if (!(result = !!callback(collection[index], index, collection))) {
+        break;
+      }
+    }
+  } else {
+    forOwn(collection, function(value, index, collection) {
+      return (result = !!callback(value, index, collection));
+    });
+  }
+  return result;
+}
+
+module.exports = every;
+
+},{"lodash.createcallback":24,"lodash.forown":28}],27:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -2930,63 +1808,7 @@ var forIn = function(collection, callback, thisArg) {
 
 module.exports = forIn;
 
-},{"lodash._basecreatecallback":49,"lodash._objecttypes":71}],76:[function(require,module,exports){
-module.exports=require(24)
-},{}],77:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":78}],78:[function(require,module,exports){
-module.exports=require(29)
-},{}],79:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"lodash._isnative":80,"lodash._shimkeys":81,"lodash.isobject":77}],80:[function(require,module,exports){
-module.exports=require(10)
-},{}],81:[function(require,module,exports){
-module.exports=require(32)
-},{"lodash._objecttypes":82}],82:[function(require,module,exports){
-module.exports=require(29)
-},{}],83:[function(require,module,exports){
-/**
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
- * Build: `lodash modularize modern exports="npm" -o ./npm/`
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-
-/**
- * Creates a "_.pluck" style function, which returns the `key` value of a
- * given object.
- *
- * @static
- * @memberOf _
- * @category Utilities
- * @param {string} key The name of the property to retrieve.
- * @returns {Function} Returns the new function.
- * @example
- *
- * var characters = [
- *   { 'name': 'fred',   'age': 40 },
- *   { 'name': 'barney', 'age': 36 }
- * ];
- *
- * var getName = _.property('name');
- *
- * _.map(characters, getName);
- * // => ['barney', 'fred']
- *
- * _.sortBy(characters, getName);
- * // => [{ 'name': 'barney', 'age': 36 }, { 'name': 'fred',   'age': 40 }]
- */
-function property(key) {
-  return function(object) {
-    return object[key];
-  };
-}
-
-module.exports = property;
-
-},{}],84:[function(require,module,exports){
+},{"lodash._basecreatecallback":7,"lodash._objecttypes":16}],28:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -3038,59 +1860,762 @@ var forOwn = function(collection, callback, thisArg) {
 
 module.exports = forOwn;
 
-},{"lodash._basecreatecallback":85,"lodash._objecttypes":106,"lodash.keys":107}],85:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"lodash._setbinddata":86,"lodash.bind":89,"lodash.identity":103,"lodash.support":104}],86:[function(require,module,exports){
-module.exports=require(9)
-},{"lodash._isnative":87,"lodash.noop":88}],87:[function(require,module,exports){
-module.exports=require(10)
-},{}],88:[function(require,module,exports){
-module.exports=require(11)
-},{}],89:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"lodash._createwrapper":90,"lodash._slice":102}],90:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"lodash._basebind":91,"lodash._basecreatewrapper":96,"lodash._slice":102,"lodash.isfunction":101}],91:[function(require,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"lodash._basecreate":92,"lodash._setbinddata":86,"lodash._slice":102,"lodash.isobject":95}],92:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"lodash._isnative":93,"lodash.isobject":95,"lodash.noop":94}],93:[function(require,module,exports){
-module.exports=require(10)
-},{}],94:[function(require,module,exports){
-module.exports=require(11)
-},{}],95:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":106}],96:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"lodash._basecreate":97,"lodash._setbinddata":86,"lodash._slice":102,"lodash.isobject":100}],97:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"lodash._isnative":98,"lodash.isobject":100,"lodash.noop":99}],98:[function(require,module,exports){
-module.exports=require(10)
-},{}],99:[function(require,module,exports){
-module.exports=require(11)
-},{}],100:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":106}],101:[function(require,module,exports){
-module.exports=require(24)
-},{}],102:[function(require,module,exports){
-module.exports=require(25)
-},{}],103:[function(require,module,exports){
-module.exports=require(26)
-},{}],104:[function(require,module,exports){
-module.exports=require(27)
-},{"lodash._isnative":105}],105:[function(require,module,exports){
-module.exports=require(10)
-},{}],106:[function(require,module,exports){
-module.exports=require(29)
-},{}],107:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"lodash._isnative":108,"lodash._shimkeys":109,"lodash.isobject":110}],108:[function(require,module,exports){
-module.exports=require(10)
-},{}],109:[function(require,module,exports){
-module.exports=require(32)
-},{"lodash._objecttypes":106}],110:[function(require,module,exports){
-module.exports=require(18)
-},{"lodash._objecttypes":106}],111:[function(require,module,exports){
+},{"lodash._basecreatecallback":7,"lodash._objecttypes":16,"lodash.keys":32}],29:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/**
+ * This method returns the first argument provided to it.
+ *
+ * @static
+ * @memberOf _
+ * @category Utilities
+ * @param {*} value Any value.
+ * @returns {*} Returns `value`.
+ * @example
+ *
+ * var object = { 'name': 'fred' };
+ * _.identity(object) === object;
+ * // => true
+ */
+function identity(value) {
+  return value;
+}
+
+module.exports = identity;
+
+},{}],30:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/**
+ * Checks if `value` is a function.
+ *
+ * @static
+ * @memberOf _
+ * @category Objects
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if the `value` is a function, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ */
+function isFunction(value) {
+  return typeof value == 'function';
+}
+
+module.exports = isFunction;
+
+},{}],31:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var objectTypes = require('lodash._objecttypes');
+
+/**
+ * Checks if `value` is the language type of Object.
+ * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @category Objects
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if the `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(1);
+ * // => false
+ */
+function isObject(value) {
+  // check if the value is the ECMAScript language type of Object
+  // http://es5.github.io/#x8
+  // and avoid a V8 bug
+  // http://code.google.com/p/v8/issues/detail?id=2291
+  return !!(value && objectTypes[typeof value]);
+}
+
+module.exports = isObject;
+
+},{"lodash._objecttypes":16}],32:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var isNative = require('lodash._isnative'),
+    isObject = require('lodash.isobject'),
+    shimKeys = require('lodash._shimkeys');
+
+/* Native method shortcuts for methods with the same name as other `lodash` methods */
+var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
+
+/**
+ * Creates an array composed of the own enumerable property names of an object.
+ *
+ * @static
+ * @memberOf _
+ * @category Objects
+ * @param {Object} object The object to inspect.
+ * @returns {Array} Returns an array of property names.
+ * @example
+ *
+ * _.keys({ 'one': 1, 'two': 2, 'three': 3 });
+ * // => ['one', 'two', 'three'] (property order is not guaranteed across environments)
+ */
+var keys = !nativeKeys ? shimKeys : function(object) {
+  if (!isObject(object)) {
+    return [];
+  }
+  return nativeKeys(object);
+};
+
+module.exports = keys;
+
+},{"lodash._isnative":14,"lodash._shimkeys":20,"lodash.isobject":31}],33:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/**
+ * A no-operation function.
+ *
+ * @static
+ * @memberOf _
+ * @category Utilities
+ * @example
+ *
+ * var object = { 'name': 'fred' };
+ * _.noop(object) === undefined;
+ * // => true
+ */
+function noop() {
+  // no operation performed
+}
+
+module.exports = noop;
+
+},{}],34:[function(require,module,exports){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+
+/**
+ * Creates a "_.pluck" style function, which returns the `key` value of a
+ * given object.
+ *
+ * @static
+ * @memberOf _
+ * @category Utilities
+ * @param {string} key The name of the property to retrieve.
+ * @returns {Function} Returns the new function.
+ * @example
+ *
+ * var characters = [
+ *   { 'name': 'fred',   'age': 40 },
+ *   { 'name': 'barney', 'age': 36 }
+ * ];
+ *
+ * var getName = _.property('name');
+ *
+ * _.map(characters, getName);
+ * // => ['barney', 'fred']
+ *
+ * _.sortBy(characters, getName);
+ * // => [{ 'name': 'barney', 'age': 36 }, { 'name': 'fred',   'age': 40 }]
+ */
+function property(key) {
+  return function(object) {
+    return object[key];
+  };
+}
+
+module.exports = property;
+
+},{}],35:[function(require,module,exports){
+(function (global){
+/**
+ * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Build: `lodash modularize modern exports="npm" -o ./npm/`
+ * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <http://lodash.com/license>
+ */
+var isNative = require('lodash._isnative');
+
+/** Used to detect functions containing a `this` reference */
+var reThis = /\bthis\b/;
+
+/**
+ * An object used to flag environments features.
+ *
+ * @static
+ * @memberOf _
+ * @type Object
+ */
+var support = {};
+
+/**
+ * Detect if functions can be decompiled by `Function#toString`
+ * (all but PS3 and older Opera mobile browsers & avoided in Windows 8 apps).
+ *
+ * @memberOf _.support
+ * @type boolean
+ */
+support.funcDecomp = !isNative(global.WinRTError) && reThis.test(function() { return this; });
+
+/**
+ * Detect if `Function#name` is supported (all but IE).
+ *
+ * @memberOf _.support
+ * @type boolean
+ */
+support.funcNames = typeof Function.name == 'string';
+
+module.exports = support;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"lodash._isnative":14}],36:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require("react");
+
+/* You know when you want to propagate input to a parent...
+ * but then that parent does something with the input...
+ * then changing the props of the input...
+ * on every keystroke...
+ * so if some input is invalid or incomplete...
+ * the input gets reset or otherwise effed...
+ *
+ * This is the solution.
+ *
+ * Enough melodrama. Its an input that only sends changes
+ * to its parent on blur.
+ */
+var BlurInput = React.createClass({displayName: 'BlurInput',
+    propTypes: {
+        value: React.PropTypes.string.isRequired,
+        onChange: React.PropTypes.func.isRequired
+    },
+    getInitialState: function() {
+        return { value: this.props.value };
+    },
+    render: function() {
+        return this.transferPropsTo(React.DOM.input(
+            {type:"text",
+            value:this.state.value,
+            onChange:this.handleChange,
+            onBlur:this.handleBlur} ));
+    },
+    componentWillReceiveProps: function(nextProps) {
+        this.setState({ value: nextProps.value });
+    },
+    handleChange: function(e) {
+        this.setState({ value: e.target.value });
+    },
+    handleBlur: function(e) {
+        this.props.onChange(e.target.value);
+    }
+});
+
+module.exports = BlurInput;
+
+},{"react":45}],37:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require('react');
+var RCSS = require('rcss');
+var _ = require('underscore');
+
+var outerStyle = {
+    display: 'inline-block',
+};
+
+var buttonStyle = {
+    backgroundColor: 'white',
+    border: '1px solid #ccc',
+    borderBottom: '1px solid #ccc',
+    borderLeft: '0',
+    cursor: 'pointer',
+    margin: '0',
+    padding: '5px 10px',
+    position: 'relative', // for hover
+
+    ':first-child': {
+        borderLeft: '1px solid #ccc',
+        borderTopLeftRadius: '3px',
+        borderBottomLeftRadius: '3px'
+    },
+
+    ':last-child': {
+        borderRight: '1px solid #ccc',
+        borderTopRightRadius: '3px',
+        borderBottomRightRadius: '3px'
+    },
+
+    ':hover': {
+        backgroundColor: '#ccc'
+    },
+
+    ':focus': {
+        zIndex: '2'
+    }
+};
+
+var selectedStyle = {
+    backgroundColor: '#ddd'
+};
+
+RCSS.createClass(outerStyle);
+RCSS.createClass(buttonStyle);
+RCSS.createClass(selectedStyle);
+
+/* ButtonGroup is an aesthetically pleasing group of buttons.
+ *
+ * The class requires these properties:
+ *   buttons - an array of objects with keys:
+ *     "value": this is the value returned when the button is selected
+ *     "text": this is the text shown on the button
+ *     "title": this is the title-text shown on hover
+ *   onChange - a function that is provided with the updated value
+ *     (which it then is responsible for updating)
+ *
+ * The class has these optional properties:
+ *   value - the initial value of the button selected, defaults to null.
+ *   allowEmpty - if false, exactly one button _must_ be selected; otherwise
+ *     it defaults to true and _at most_ one button (0 or 1) may be selected.
+ *
+ * Requires stylesheets/perseus-admin-package/editor.less to look nice.
+ */
+
+var ButtonGroup = React.createClass({displayName: 'ButtonGroup',
+    propTypes: {
+        value: React.PropTypes.any,
+        buttons: React.PropTypes.arrayOf(React.PropTypes.shape({
+            value: React.PropTypes.any.isRequired,
+            text: React.PropTypes.renderable,
+            title: React.PropTypes.string
+        })).isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        allowEmpty: React.PropTypes.bool
+    },
+
+    getDefaultProps: function() {
+        return {
+            value: null,
+            allowEmpty: true
+        };
+    },
+
+    render: function() {
+        var value = this.props.value;
+        var buttons = _(this.props.buttons).map(function(button, i)  {
+                var maybeSelected = button.value === value ?
+                        selectedStyle.className :
+                        "";
+                return React.DOM.button( {title:button.title,
+                        id:"" + i,
+                        ref:"button" + i,
+                        key:"" + i,
+                        className:(buttonStyle.className + " " + maybeSelected),
+                        onClick:this.toggleSelect.bind(this, button.value)}, 
+                    button.text || "" + button.value
+                );
+            }.bind(this));
+
+        return React.DOM.div( {className:outerStyle.className}, 
+            buttons
+        );
+    },
+
+    focus: function() {
+        this.getDOMNode().focus();
+        return true;
+    },
+
+    toggleSelect: function(newValue) {
+        var value = this.props.value;
+
+        if (this.props.allowEmpty) {
+            // Select the new button or unselect if it's already selected
+            this.props.onChange(value !== newValue ? newValue : null);
+        } else {
+            this.props.onChange(newValue);
+        }
+    }
+});
+
+module.exports = ButtonGroup;
+
+},{"rcss":40,"react":45,"underscore":46}],38:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require('react');
+
+/* This component makes its children a drag target. Example:
+ *
+ *     <DragTarget onDrop={this.handleDrop}>Drag to me</DragTarget>
+ *
+ *     ...
+ *
+ *     handleDrop: function(e) {
+ *         this.addImages(e.nativeEvent.dataTransfer.files);
+ *     }
+ *
+ * Now "Drag to me" will be a drag target - when something is dragged over it,
+ * the element will become partially transparent as a visual indicator that
+ * it's a target.
+ */
+// TODO(joel) - indicate before the hover is over the target that it's possible
+// to drag into the target. This would (I think) require a high level handler -
+// like on Perseus itself, waiting for onDragEnter, then passing down the
+// event. Sounds like a pain. Possible workaround - create a div covering the
+// entire page...
+//
+// Other extensions:
+// * custom styles for global drag and dragOver
+// * only respond to certain types of drags (only images for instance)!
+var DragTarget = React.createClass({displayName: 'DragTarget',
+    propTypes: {
+        onDrop: React.PropTypes.func.isRequired,
+        component: React.PropTypes.component,
+        shouldDragHighlight: React.PropTypes.func
+    },
+    render: function() {
+        var opacity = this.state.dragHover ? { "opacity": 0.3 } : {};
+        var component = this.props.component;
+
+        return this.transferPropsTo(
+            component( {style:opacity,
+                       onDrop:this.handleDrop,
+                       onDragEnd:this.handleDragEnd,
+                       onDragOver:this.handleDragOver,
+                       onDragEnter:this.handleDragEnter,
+                       onDragLeave:this.handleDragLeave}, 
+                this.props.children
+            )
+        );
+    },
+    getInitialState: function() {
+        return { dragHover: false };
+    },
+    getDefaultProps: function() {
+        return {
+            component: React.DOM.div,
+            shouldDragHighlight: function()  {return true;}
+        };
+    },
+    handleDrop: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.setState({ dragHover: false });
+        this.props.onDrop(e);
+    },
+    handleDragEnd: function() {
+        this.setState({ dragHover: false });
+    },
+    handleDragOver: function(e) {
+        e.preventDefault();
+    },
+    handleDragLeave: function() {
+        this.setState({ dragHover: false });
+    },
+    handleDragEnter: function(e) {
+        this.setState({ dragHover: this.props.shouldDragHighlight(e) });
+    }
+});
+
+module.exports = DragTarget;
+
+},{"react":45}],39:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require('react');
+var RCSS = require('rcss');
+var _ = require('underscore');
+
+var colors = {
+    grayLight: '#aaa',
+    basicBorderColor: '#ccc',
+    white: '#fff'
+};
+
+var infoTip = {
+    display: 'inline-block',
+    marginLeft: '5px',
+    position: 'relative'
+};
+
+var infoTipI = {
+    cursor: 'pointer'
+};
+
+var infoTipContainer = {
+    position: 'absolute',
+    'top': '-12px',
+    left: '22px',
+    zIndex: '1000'
+};
+
+var triangleBeforeAfter = {
+    borderBottom: '9px solid transparent',
+    borderTop: '9px solid transparent',
+    content: ' ',
+    height: '0',
+    position: 'absolute',
+    'top': '0',
+    width: '0'
+};
+
+var infoTipTriangle = {
+    height: '10px',
+    left: '0',
+    position: 'absolute',
+    'top': '8px',
+    width: '0',
+    zIndex: '1',
+
+    ':before': _.extend({}, triangleBeforeAfter, {
+        borderRight: '9px solid #bbb',
+        right: '0',
+    }),
+
+    ':after': _.extend({}, triangleBeforeAfter, {
+        borderRight: ("9px solid " + colors.white),
+        right: '-1px'
+    })
+};
+
+var basicBorder = {
+    border: ("1px solid " + colors.basicBorderColor)
+};
+
+var boxShadow = function(str)  { return { boxShadow: str }; };
+
+var verticalShadow = RCSS.merge(
+    basicBorder,
+    boxShadow(("0 1px 3px " + colors.basicBorderColor)),
+    { borderBottom: ("1px solid " + colors.grayLight) }
+);
+
+var infoTipContentContainer = RCSS.merge(verticalShadow, {
+    background: colors.white,
+    padding: '5px 10px',
+    width: '240px'
+});
+
+RCSS.createClass(infoTip);
+RCSS.createClass(infoTipI);
+RCSS.createClass(infoTipTriangle);
+RCSS.createClass(verticalShadow);
+RCSS.createClass(infoTipContainer);
+RCSS.createClass(infoTipContentContainer);
+
+var questionMark = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA3NpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDIxIDc5LjE1NDkxMSwgMjAxMy8xMC8yOS0xMTo0NzoxNiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2N2M3NTAxYS04YmVlLTQ0M2MtYmRiNS04OGM2N2IxN2NhYzEiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUJCRTk4Qjc4NjAwMTFFMzg3QUJDNEI4Mzk2QTRGQkQiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUJCRTk4QjY4NjAwMTFFMzg3QUJDNEI4Mzk2QTRGQkQiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NGE5ZDI0OTMtODk1NC00OGFkLTlhMTgtZDAwM2MwYWNjNDJlIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjY3Yzc1MDFhLThiZWUtNDQzYy1iZGI1LTg4YzY3YjE3Y2FjMSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pqm89uYAAADMSURBVHjaXJA9DoJAEIUH1M4TUHIFsCMGen9OwCGw1YRGW2ntKel0exsojHIBC0ouQAyUviFDstmXfNmZeS+zm7XSNCXRFiRgJf0bXIHixpbhGdxBBJYC1w/xaA424MhNEATkui71fU9KqfEU78UbD9PdbJRlOdae55GmhIP+1NV1TcMwkOM41DSNHvRtMhTHMRVFQW3b6mOLgx99kue5GRp/gIOZuZGvNpTNwjD8oliANU+qqqKu6/TQBdymN57AHjzBT+B6Jx79BRgAvc49kQA4yxgAAAAASUVORK5CYII='; // @NoLint
+
+var InfoTip = React.createClass({displayName: 'InfoTip',
+    getInitialState: function() {
+        return {
+            hover: false
+        };
+    },
+
+    render: function() {
+        return React.DOM.div( {className:infoTip.className}, 
+            React.DOM.img( {width:10,
+                 height:10,
+                 src:questionMark,
+                 onMouseEnter:this.handleMouseEnter,
+                 onMouseLeave:this.handleMouseLeave} ),
+            React.DOM.div( {className:infoTipContainer.className,
+                 style:{display: this.state.hover ? 'block' : 'none'}}, 
+                React.DOM.div( {className:infoTipTriangle.className} ),
+                /* keep the classes here - used for selectors on KA */
+                React.DOM.div( {className:infoTipContentContainer.className}, 
+                    this.props.children
+                )
+            )
+        );
+    },
+
+    handleMouseEnter: function() {
+        this.setState({hover: true});
+    },
+
+    handleMouseLeave: function() {
+        this.setState({hover: false});
+    }
+});
+
+module.exports = InfoTip;
+
+},{"rcss":40,"react":45,"underscore":46}],40:[function(require,module,exports){
+var assign = require('lodash.assign');
+
+var styleRuleValidator = require('./styleRuleValidator');
+var styleRuleConverter = require('./styleRuleConverter');
+var mediaQueryValidator = require('valid-media-queries');
+
+var existingClasses = {};
+var styleTag = createStyleTag();
+
+var classNameId = 0;
+var randomSuffix = Math.random().toString(36).slice(-5);
+
+function generateValidCSSClassName() {
+  // CSS classNames can't start with a number.
+  return 'c' + (classNameId++) + '-' + randomSuffix;
+}
+
+function objToCSS(style) {
+  var serialized = '';
+  for (var propName in style) {
+    // we put that ourselves
+    if (propName == 'className') continue;
+
+    var cssPropName = styleRuleConverter.hyphenateProp(propName);
+    if (!styleRuleValidator.isValidProp(cssPropName)) {
+      console.warn(
+        '%s (transformed into %s) is not a valid CSS property name.', propName, cssPropName
+      );
+      continue;
+    }
+
+    var styleValue = style[propName];
+    if (!styleRuleValidator.isValidValue(styleValue)) continue;
+
+    if (styleValue !== null) {
+      serialized += cssPropName + ':';
+      serialized += styleRuleConverter.escapeValueForProp(styleValue,
+        cssPropName) + ';';
+    }
+  }
+  return serialized || null;
+}
+
+function createStyleTag() {
+  var tag = document.createElement('style');
+  document.getElementsByTagName('head')[0].appendChild(tag);
+  return tag;
+}
+
+function styleToCSS(style) {
+  var styleStr = '.' + style.className + '{';
+  styleStr += objToCSS(style.value);
+  styleStr += '}';
+
+  if (style.media) {
+    if (!mediaQueryValidator(style.media)) {
+      console.log('%s is not a valid media query.', style.media);
+    }
+    styleStr = style.media + '{' + styleStr + '}';
+  }
+
+  return styleStr;
+}
+
+// TODO: support media queries
+function parseStyles(className, styleObj) {
+  var mainStyle = {
+    className: className,
+    value: {}
+  };
+  var styles = [mainStyle];
+
+  Object.keys(styleObj).forEach(function(k){
+    // pseudo-selector, insert a new rule
+    if (k[0] === ':') {
+      styles.push({
+        className: className+k,
+        value: styleObj[k]
+      });
+      return;
+    } else if (k.substring(0, 6) === '@media') {
+      styles.push({
+        className: className,
+        value: styleObj[k],
+        media: k
+      });
+      return;
+    }
+
+    // normal rule, insert into main one
+    mainStyle.value[k] = styleObj[k];
+  });
+
+  return styles;
+}
+
+function insertStyle(className, styleObj) {
+  var styles = parseStyles(className, styleObj);
+  var styleStr = styles.map(styleToCSS).join('');
+  styleTag.innerHTML += styleStr;
+}
+
+var RCSS = {
+  merge: function(a, b, c, d, e) {
+    return assign({}, a, b, c, d, e);
+  },
+
+  createClass: function(styleObj) {
+    var styleId = JSON.stringify(styleObj);
+    var className;
+
+    if (existingClasses[styleId]) {
+      // already exists, use the existing className
+      className = existingClasses[styleId];
+    } else {
+      // generate a new class and insert it
+      className = generateValidCSSClassName();
+      existingClasses[styleId] = className;
+      insertStyle(className, styleObj);
+    }
+
+    styleObj.className = className;
+    return styleObj;
+  }
+};
+
+module.exports = RCSS;
+
+},{"./styleRuleConverter":41,"./styleRuleValidator":42,"lodash.assign":22,"valid-media-queries":48}],41:[function(require,module,exports){
 var escape = require('lodash.escape');
 
 var _uppercasePattern = /([A-Z])/g;
@@ -3112,7 +2637,7 @@ module.exports = {
   escapeValueForProp: escapeValueForProp
 };
 
-},{"lodash.escape":34}],112:[function(require,module,exports){
+},{"lodash.escape":25}],42:[function(require,module,exports){
 var isValidCSSProps = require('valid-css-props');
 
 function isValidProp(prop) {
@@ -3128,7 +2653,7 @@ module.exports = {
   isValidValue: isValidValue
 };
 
-},{"valid-css-props":45}],113:[function(require,module,exports){
+},{"valid-css-props":47}],43:[function(require,module,exports){
 /** @jsx React.DOM */
 /**
  * For math rendered using KaTex and/or MathJax. Use me like <TeX>2x + 3</TeX>.
@@ -3277,7 +2802,7 @@ var TeX = React.createClass({displayName: 'TeX',
 
 module.exports = TeX;
 
-},{"react":115}],114:[function(require,module,exports){
+},{"react":45}],44:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require("react");
@@ -3648,7 +3173,7 @@ var Tooltip = React.createClass({displayName: 'Tooltip',
 // Sorry.  // Apology-Oriented-Programming
 module.exports = Tooltip;
 
-},{"react":115,"underscore":116}],115:[function(require,module,exports){
+},{"react":45,"underscore":46}],45:[function(require,module,exports){
 /* This note applies to rcss, react, and underscore.
  *
  * We're faking a node module for this package by just exporting the global.
@@ -3672,7 +3197,7 @@ module.exports = Tooltip;
  */
 module.exports = window.React;
 
-},{}],116:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 /* This note applies to rcss, react, and underscore.
  *
  * We're faking a node module for this package by just exporting the global.
@@ -3696,7 +3221,465 @@ module.exports = window.React;
  */
 module.exports = window._;
 
-},{}],117:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
+var _validCSSProps = {
+  'alignment-adjust': true,
+  'alignment-baseline': true,
+  'animation': true,
+  'animation-delay': true,
+  'animation-direction': true,
+  'animation-duration': true,
+  'animation-iteration-count': true,
+  'animation-name': true,
+  'animation-play-state': true,
+  'animation-timing-function': true,
+  'appearance': true,
+  'backface-visibility': true,
+  'background': true,
+  'background-attachment': true,
+  'background-clip': true,
+  'background-color': true,
+  'background-image': true,
+  'background-origin': true,
+  'background-position': true,
+  'background-repeat': true,
+  'background-size': true,
+  'baseline-shift': true,
+  'bookmark-label': true,
+  'bookmark-level': true,
+  'bookmark-target': true,
+  'border': true,
+  'border-bottom': true,
+  'border-bottom-color': true,
+  'border-bottom-left-radius': true,
+  'border-bottom-right-radius': true,
+  'border-bottom-style': true,
+  'border-bottom-width': true,
+  'border-collapse': true,
+  'border-color': true,
+  'border-image': true,
+  'border-image-outset': true,
+  'border-image-repeat': true,
+  'border-image-slice': true,
+  'border-image-source': true,
+  'border-image-width': true,
+  'border-left': true,
+  'border-left-color': true,
+  'border-left-style': true,
+  'border-left-width': true,
+  'border-radius': true,
+  'border-right': true,
+  'border-right-color': true,
+  'border-right-style': true,
+  'border-right-width': true,
+  'border-spacing': true,
+  'border-style': true,
+  'border-top': true,
+  'border-top-color': true,
+  'border-top-left-radius': true,
+  'border-top-right-radius': true,
+  'border-top-style': true,
+  'border-top-width': true,
+  'border-width': true,
+  'bottom': true,
+  'box-align': true,
+  'box-decoration-break': true,
+  'box-direction': true,
+  'box-flex': true,
+  'box-flex-group': true,
+  'box-lines': true,
+  'box-ordinal-group': true,
+  'box-orient': true,
+  'box-pack': true,
+  'box-shadow': true,
+  'box-sizing': true,
+  'caption-side': true,
+  'clear': true,
+  'clip': true,
+  'color': true,
+  'color-profile': true,
+  'column-count': true,
+  'column-fill': true,
+  'column-gap': true,
+  'column-rule': true,
+  'column-rule-color': true,
+  'column-rule-style': true,
+  'column-rule-width': true,
+  'column-span': true,
+  'column-width': true,
+  'columns': true,
+  'content': true,
+  'counter-increment': true,
+  'counter-reset': true,
+  'crop': true,
+  'cursor': true,
+  'direction': true,
+  'display': true,
+  'dominant-baseline': true,
+  'drop-initial-after-adjust': true,
+  'drop-initial-after-align': true,
+  'drop-initial-before-adjust': true,
+  'drop-initial-before-align': true,
+  'drop-initial-size': true,
+  'drop-initial-value': true,
+  'empty-cells': true,
+  'fit': true,
+  'fit-position': true,
+  'float': true,
+  'float-offset': true,
+  'font': true,
+  'font-family': true,
+  'font-size': true,
+  'font-size-adjust': true,
+  'font-stretch': true,
+  'font-style': true,
+  'font-variant': true,
+  'font-weight': true,
+  'grid-columns': true,
+  'grid-rows': true,
+  'hanging-punctuation': true,
+  'height': true,
+  'hyphenate-after': true,
+  'hyphenate-before': true,
+  'hyphenate-character': true,
+  'hyphenate-lines': true,
+  'hyphenate-resource': true,
+  'hyphens': true,
+  'icon': true,
+  'image-orientation': true,
+  'image-resolution': true,
+  'inline-box-align': true,
+  'left': true,
+  'letter-spacing': true,
+  'line-height': true,
+  'line-stacking': true,
+  'line-stacking-ruby': true,
+  'line-stacking-shift': true,
+  'line-stacking-strategy': true,
+  'list-style': true,
+  'list-style-image': true,
+  'list-style-position': true,
+  'list-style-type': true,
+  'margin': true,
+  'margin-bottom': true,
+  'margin-left': true,
+  'margin-right': true,
+  'margin-top': true,
+  'mark': true,
+  'mark-after': true,
+  'mark-before': true,
+  'marks': true,
+  'marquee-direction': true,
+  'marquee-play-count': true,
+  'marquee-speed': true,
+  'marquee-style': true,
+  'max-height': true,
+  'max-width': true,
+  'min-height': true,
+  'min-width': true,
+  'move-to': true,
+  'nav-down': true,
+  'nav-index': true,
+  'nav-left': true,
+  'nav-right': true,
+  'nav-up': true,
+  'opacity': true,
+  'orphans': true,
+  'outline': true,
+  'outline-color': true,
+  'outline-offset': true,
+  'outline-style': true,
+  'outline-width': true,
+  'overflow': true,
+  'overflow-style': true,
+  'overflow-x': true,
+  'overflow-y': true,
+  'padding': true,
+  'padding-bottom': true,
+  'padding-left': true,
+  'padding-right': true,
+  'padding-top': true,
+  'page': true,
+  'page-break-after': true,
+  'page-break-before': true,
+  'page-break-inside': true,
+  'page-policy': true,
+  'perspective': true,
+  'perspective-origin': true,
+  'phonemes': true,
+  'position': true,
+  'punctuation-trim': true,
+  'quotes': true,
+  'rendering-intent': true,
+  'resize': true,
+  'rest': true,
+  'rest-after': true,
+  'rest-before': true,
+  'right': true,
+  'rotation': true,
+  'rotation-point': true,
+  'ruby-align': true,
+  'ruby-overhang': true,
+  'ruby-position': true,
+  'ruby-span': true,
+  'size': true,
+  'string-set': true,
+  'table-layout': true,
+  'target': true,
+  'target-name': true,
+  'target-new': true,
+  'target-position': true,
+  'text-align': true,
+  'text-align-last': true,
+  'text-decoration': true,
+  'text-height': true,
+  'text-indent': true,
+  'text-justify': true,
+  'text-outline': true,
+  'text-overflow': true,
+  'text-shadow': true,
+  'text-transform': true,
+  'text-wrap': true,
+  'top': true,
+  'transform': true,
+  'transform-origin': true,
+  'transform-style': true,
+  'transition': true,
+  'transition-delay': true,
+  'transition-duration': true,
+  'transition-property': true,
+  'transition-timing-function': true,
+  'unicode-bidi': true,
+  'user-select': true,
+  'vertical-align': true,
+  'visibility': true,
+  'voice-balance': true,
+  'voice-duration': true,
+  'voice-pitch': true,
+  'voice-pitch-range': true,
+  'voice-rate': true,
+  'voice-stress': true,
+  'voice-volume': true,
+  'white-space': true,
+  'widows': true,
+  'width': true,
+  'word-break': true,
+  'word-spacing': true,
+  'word-wrap': true,
+  'z-index': true
+}
+
+var vendorPrefixRegEx = /^-.+-/;
+
+module.exports = function(prop) {
+  if (prop[0] === '-') {
+    return !!_validCSSProps[prop.replace(vendorPrefixRegEx, '')];
+  }
+  return !!_validCSSProps[prop];
+};
+
+},{}],48:[function(require,module,exports){
+var every = require('lodash.every');
+
+function isValidRatio(ratio) {
+    var re = /\d+\/\d+/;
+    return !!ratio.match(re);
+}
+
+function isValidInteger(integer) {
+    var re = /\d+/;
+    return !!integer.match(re);
+}
+
+function isValidLength(length) {
+    var re = /\d+(?:ex|em|ch|rem|vh|vw|vmin|vmax|px|mm|cm|in|pt|pc)?$/;
+    return !!length.match(re);
+}
+
+function isValidOrientation(orientation) {
+    return orientation === 'landscape' || orientation === 'portrait';
+}
+
+function isValidScan(scan) {
+    return scan === 'progressive' || scan === 'interlace';
+}
+
+function isValidResolution(resolution) {
+    var re = /(?:\+|-)?(?:\d+|\d*\.\d+)(?:e\d+)?(?:dpi|dpcm|dppx)$/;
+    return !!resolution.match(re);
+}
+
+function isValidValue(value) {
+  return value != null && typeof value !== 'boolean' && value !== '';
+}
+
+var _mediaFeatureValidator = {
+    'width': isValidLength,
+    'min-width': isValidLength,
+    'max-width': isValidLength,
+    'height': isValidLength,
+    'min-height': isValidLength,
+    'max-height': isValidLength,
+    'device-width': isValidLength,
+    'min-device-width': isValidLength,
+    'max-device-width': isValidLength,
+    'device-height': isValidLength,
+    'min-device-height': isValidLength,
+    'max-device-height': isValidLength,
+    'aspect-ratio': isValidRatio,
+    'min-aspect-ratio': isValidRatio,
+    'max-aspect-ratio': isValidRatio,
+    'device-aspect-ratio': isValidRatio,
+    'min-device-aspect-ratio': isValidRatio,
+    'max-device-aspect-ratio': isValidRatio,
+    'color': isValidValue,
+    'min-color': isValidValue,
+    'max-color': isValidValue,
+    'color-index': isValidInteger,
+    'min-color-index': isValidInteger,
+    'max-color-index': isValidInteger,
+    'monochrome': isValidInteger,
+    'min-monochrome': isValidInteger,
+    'max-monochrome': isValidInteger,
+    'resolution': isValidResolution,
+    'min-resolution': isValidResolution,
+    'max-resolution': isValidResolution,
+    'scan': isValidScan,
+    'grid': isValidInteger,
+    'orientation': isValidOrientation
+};
+
+var _validMediaFeatures = {
+    'width': true,
+    'min-width': true,
+    'max-width': true,
+    'height': true,
+    'min-height': true,
+    'max-height': true,
+    'device-width': true,
+    'min-device-width': true,
+    'max-device-width': true,
+    'device-height': true,
+    'min-device-height': true,
+    'max-device-height': true,
+    'aspect-ratio': true,
+    'min-aspect-ratio': true,
+    'max-aspect-ratio': true,
+    'device-aspect-ratio': true,
+    'min-device-aspect-ratio': true,
+    'max-device-aspect-ratio': true,
+    'color': true,
+    'min-color': true,
+    'max-color': true,
+    'color-index': true,
+    'min-color-index': true,
+    'max-color-index': true,
+    'monochrome': true,
+    'min-monochrome': true,
+    'max-monochrome': true,
+    'resolution': true,
+    'min-resolution': true,
+    'max-resolution': true,
+    'scan': true,
+    'grid': true,
+    'orientation': true
+};
+
+var _validMediaTypes = {
+    'all': true,
+    'aural': true,
+    'braille': true,
+    'handheld': true,
+    'print': true,
+    'projection': true,
+    'screen': true,
+    'tty': true,
+    'tv': true,
+    'embossed': true
+};
+
+var _validQualifiers = {
+    'not': true,
+    'only': true
+};
+
+function isValidFeature(feature) {
+    return !!_validMediaFeatures[feature];
+}
+
+function isValidQualifier(qualifier) {
+    return !!_validQualifiers[qualifier];
+}
+
+function isValidMediaType(mediaType) {
+    return !!_validMediaTypes[mediaType];
+}
+
+function isValidQualifiedMediaType(mediaType) {
+    var terms = mediaType.trim().split(/\s+/);
+    switch (terms.length) {
+        case 1:
+            return isValidMediaType(terms[0]);
+        case 2:
+            return isValidQualifier(terms[0]) && isValidMediaType(terms[1]);
+        default:
+            return false;
+    }
+}
+
+function isValidExpression(expression) {
+    if (expression.length < 2) {
+        return false;
+    }
+
+    // Parentheses are required around expressions
+    if (expression[0] !== '(' || expression[expression.length - 1] !== ')') {
+        return false;
+    }
+
+    // Remove parentheses and spacess
+    expression = expression.substring(1, expression.length - 1);
+
+    // Is there a value to accompany the media feature?
+    var featureAndValue = expression.split(/\s*:\s*/);
+    switch (featureAndValue.length) {
+        case 1:
+            var feature = featureAndValue[0].trim();
+            return isValidFeature(feature);
+        case 2:
+            var feature = featureAndValue[0].trim();
+            var value = featureAndValue[1].trim();
+            return isValidFeature(feature) &&
+                   _mediaFeatureValidator[feature](value);
+        default:
+            return false;
+    }
+}
+
+function isValidMediaQuery(query) {
+    var andSplitter = /\s+and\s+/;
+    var queryTerms = query.split(andSplitter);
+    return (isValidQualifiedMediaType(queryTerms[0]) ||
+        isValidExpression(queryTerms[0])) &&
+        every(queryTerms.slice(1), isValidExpression);
+}
+
+function isValidMediaQueryList(mediaQuery) {
+    mediaQuery = mediaQuery.toLowerCase();
+
+    if (mediaQuery.substring(0, 6) !== '@media') {
+        return false;
+    }
+
+    var commaSplitter = /\s*,\s*/;
+    var queryList = mediaQuery.substring(7, mediaQuery.length)
+                              .split(commaSplitter);
+    return every(queryList, isValidMediaQuery);
+}
+
+module.exports = isValidMediaQueryList
+
+},{"lodash.every":26}],49:[function(require,module,exports){
 var Widgets = require("./widgets.js");
 
 _.each([
@@ -3720,12 +3703,14 @@ _.each([
     require("./widgets/sorter.jsx"),
     require("./widgets/table.jsx"),
     require("./widgets/transformer.jsx"),
-    require("./widgets/image.jsx")
+    require("./widgets/image.jsx"),
+    require("./widgets/speaking-text-input.jsx"),
+    require("./widgets/speaking-voice.jsx")
 ], function(widget) {
     Widgets.register(widget.name, _.omit(widget, "name"));
 });
 
-},{"./widgets.js":171,"./widgets/categorizer.jsx":172,"./widgets/dropdown.jsx":173,"./widgets/example-graphie-widget.jsx":174,"./widgets/example-widget.jsx":175,"./widgets/expression.jsx":176,"./widgets/iframe.jsx":177,"./widgets/image.jsx":178,"./widgets/input-number.jsx":179,"./widgets/interactive-graph.jsx":180,"./widgets/interactive-number-line.jsx":181,"./widgets/lights-puzzle.jsx":182,"./widgets/matcher.jsx":183,"./widgets/measurer.jsx":184,"./widgets/number-line.jsx":185,"./widgets/numeric-input.jsx":186,"./widgets/orderer.jsx":187,"./widgets/plotter.jsx":188,"./widgets/radio.jsx":189,"./widgets/sorter.jsx":190,"./widgets/table.jsx":191,"./widgets/transformer.jsx":192}],118:[function(require,module,exports){
+},{"./widgets.js":103,"./widgets/categorizer.jsx":104,"./widgets/dropdown.jsx":105,"./widgets/example-graphie-widget.jsx":106,"./widgets/example-widget.jsx":107,"./widgets/expression.jsx":108,"./widgets/iframe.jsx":109,"./widgets/image.jsx":110,"./widgets/input-number.jsx":111,"./widgets/interactive-graph.jsx":112,"./widgets/interactive-number-line.jsx":113,"./widgets/lights-puzzle.jsx":114,"./widgets/matcher.jsx":115,"./widgets/measurer.jsx":116,"./widgets/number-line.jsx":117,"./widgets/numeric-input.jsx":118,"./widgets/orderer.jsx":119,"./widgets/plotter.jsx":120,"./widgets/radio.jsx":121,"./widgets/sorter.jsx":122,"./widgets/speaking-text-input.jsx":123,"./widgets/speaking-voice.jsx":124,"./widgets/table.jsx":125,"./widgets/transformer.jsx":126}],50:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -3738,10 +3723,14 @@ var WidgetsInAnswerAreaEditor = ['Image'];
 var AnswerAreaEditor = React.createClass({displayName: 'AnswerAreaEditor',
     getDefaultProps: function() {
         return {
-            type: "input-number",
+            type: "multiple",
             options: {},
             calculator: false
         };
+    },
+
+    getInitialState: function() {
+      return {showSolutionArea: this.props.type === "radio" || this.props.type === "input-number"}
     },
 
     render: function() {
@@ -3764,36 +3753,27 @@ var AnswerAreaEditor = React.createClass({displayName: 'AnswerAreaEditor',
 
         return React.DOM.div( {className:"perseus-answer-editor"}, 
             React.DOM.div( {className:"perseus-answer-options"}, 
-            React.DOM.div(null
-            ),
-            React.DOM.div(null, React.DOM.label(null, 
-                ' ',"Answer type:",' ',
-                React.DOM.select( {value:this.props.type,
-                        onChange:function(e)  {
-                            this.props.onChange({
-                                type: e.target.value,
-                                options: {}
-                            }, function()  {
-                                this.refs.editor.focus();
-                            }.bind(this));
-                        }.bind(this)}, 
-                    React.DOM.option( {value:"radio"}, "Multiple choice"),
-                    React.DOM.option( {value:"input-number"}, "Text input (number)")
+                this.state.showSolutionArea && React.DOM.div( {className:cls !== Editor ? "perseus-answer-widget" : ""}, 
+                    editor
                 )
-            )
-            )
-            ),
-            React.DOM.div( {className:cls !== Editor ? "perseus-answer-widget" : ""}, 
-                editor
             )
         );
     },
 
+    getEditorInAnswerArea: function() {
+        if (this.refs !== undefined) {
+            return this.refs.editor;
+        } else {
+            return undefined;
+        } 
+    },
+
     toJSON: function(skipValidation) {
         // Could be just _.pick(this.props, "type", "options"); but validation!
+        var editor = this.getEditorInAnswerArea();
         return {
             type: this.props.type,
-            options: this.refs.editor.toJSON(skipValidation),
+            options: editor !== undefined ? this.refs.editor.toJSON(skipValidation) : {},
             calculator: this.props.calculator
         };
     }
@@ -3801,7 +3781,7 @@ var AnswerAreaEditor = React.createClass({displayName: 'AnswerAreaEditor',
 
 module.exports = AnswerAreaEditor;
 
-},{"./editor.jsx":143,"./widgets.js":171,"react":115,"react-components/info-tip":5}],119:[function(require,module,exports){
+},{"./editor.jsx":75,"./widgets.js":103,"react":45,"react-components/info-tip":39}],51:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -4133,6 +4113,32 @@ var AnswerAreaRenderer = React.createClass({displayName: 'AnswerAreaRenderer',
         this.refs.widget.focus();
     },
 
+    showGuess: function(answerData) {
+        if( !answerData )
+            return;
+        if (answerData instanceof Array) {
+            // Answer area contains no widgets.
+        } else if (this.refs.widget.setAnswerFromJSON === undefined) {
+            // Target widget cannot show answer.
+            console.log("Target widget cannot show in answerarea",answerData);
+            return 'no setAnswerFromJSON implemented for widgets in answer area.';
+        } else {
+            console.log("Target widget show in answerarea")
+            // Just show the given answer.
+            this.refs.widget.setAnswerFromJSON(answerData);
+        }
+    },
+
+    canShowAllHistoryWidgets: function(answerData) {
+        if(!answerData)
+            return true;
+        if (this.refs.widget.setAnswerFromJSON === undefined) {
+            console.log('no setAnswerFromJSON implemented for widgets in answer area.');
+            return false;
+        }
+        return true;
+    },
+
     guessAndScore: function() {
         // TODO(alpert): These should probably have the same signature...
         if (this.props.type === "multiple") {
@@ -4156,7 +4162,7 @@ var AnswerAreaRenderer = React.createClass({displayName: 'AnswerAreaRenderer',
 
 module.exports = AnswerAreaRenderer;
 
-},{"./enabled-features.jsx":144,"./perseus-api.jsx":162,"./question-paragraph.jsx":164,"./renderer.jsx":165,"./util.js":168,"./widget-container.jsx":170,"./widgets.js":171,"react":115}],120:[function(require,module,exports){
+},{"./enabled-features.jsx":76,"./perseus-api.jsx":94,"./question-paragraph.jsx":96,"./renderer.jsx":97,"./util.js":100,"./widget-container.jsx":102,"./widgets.js":103,"react":45}],52:[function(require,module,exports){
 /** @jsx React.DOM */
 
 /**
@@ -4344,7 +4350,7 @@ FancySelect.Option = FancyOption;
 
 module.exports = FancySelect;
 
-},{"react":115}],121:[function(require,module,exports){
+},{"react":45}],53:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -4356,6 +4362,7 @@ var NumberInput = require("../components/number-input.jsx");
 var PropCheckBox = require("../components/prop-check-box.jsx");
 var RangeInput = require("../components/range-input.jsx");
 var Util = require("../util.js");
+var BlurInput = require("react-components/blur-input");
 
 var defaultBoxSize = 400;
 var defaultBackgroundImage = {
@@ -4391,7 +4398,7 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
             step: [1, 1],
             gridStep: [1, 1],
             snapStep: Util.snapStepFromGridStep(
-                this.props.gridStep || [1, 1]),
+                this.gridStep || [1, 1]),
             valid: true,
             backgroundImage: defaultBackgroundImage,
             markings: "graph",
@@ -4406,14 +4413,14 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
         return React.DOM.div(null, 
             React.DOM.div( {className:"graph-settings"}, 
                 React.DOM.div( {className:"perseus-widget-row"}, 
-                    React.DOM.div( {className:"perseus-widget-left-col"},  " x Label",
+                    React.DOM.div( {className:"perseus-widget-left-col"},  " x軸標籤",
                         React.DOM.input(  {type:"text",
                                 className:"graph-settings-axis-label",
                                 ref:"labels-0",
                                 onChange:this.changeLabel.bind(this, 0),
                                 value:this.state.labelsTextbox[0]} )
                     ),
-                    React.DOM.div( {className:"perseus-widget-right-col"}, "y Label",
+                    React.DOM.div( {className:"perseus-widget-right-col"}, "y軸標籤",
                         React.DOM.input(  {type:"text",
                                 className:"graph-settings-axis-label",
                                 ref:"labels-1",
@@ -4424,58 +4431,53 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
 
                 React.DOM.div( {className:"perseus-widget-row"}, 
                     React.DOM.div( {className:"perseus-widget-left-col"}, 
-                        "x Range",
+                        "x軸範圍",
                         RangeInput( {value: this.state.rangeTextbox[0],
                             onChange:  this.changeRange.bind(this, 0)} )
                     ),
                     React.DOM.div( {className:"perseus-widget-right-col"}, 
-                        "y Range",
+                        "y軸範圍",
                         RangeInput( {value: this.state.rangeTextbox[1],
                             onChange:  this.changeRange.bind(this, 1)} )
                     )
                 ),
                 React.DOM.div( {className:"perseus-widget-row"}, 
                     React.DOM.div( {className:"perseus-widget-left-col"}, 
-                        "Tick Step",
+                        "座標間距",
                         RangeInput( {value: this.state.stepTextbox,
                                     onChange:  this.changeStep} )
                     ),
                     React.DOM.div( {className:"perseus-widget-right-col"}, 
-                        "Grid Step",
+                        "網格間距",
                         RangeInput( {value: this.state.gridStepTextbox,
                                     onChange:  this.changeGridStep} )
                     )
                 ),
                 React.DOM.div( {className:"perseus-widget-row"}, 
                     React.DOM.div( {className:"perseus-widget-left-col"}, 
-                        "Snap Step",
+                        "答案拖拉間距",
                         RangeInput( {value: this.state.snapStepTextbox,
                                     onChange:  this.changeSnapStep} )
                     )
                 ),
                 React.DOM.div( {className:"perseus-widget-row"}, 
-                    React.DOM.label(null, "Markings:",' ', " " ),
+                    React.DOM.label(null, "標記:",' ', " " ),
                     ButtonGroup( {value:this.props.markings,
                         allowEmpty:false,
                         buttons:[
-                            {value: "graph", text: "Graph"},
-                            {value: "grid", text: "Grid"},
-                            {value: "none", text: "None"}],
+                            {value: "graph", text: "座標圖"},
+                            {value: "grid", text: "僅網格"},
+                            {value: "none", text: "無"}],
                         onChange:this.change("markings")} )
                 )
             ),
             React.DOM.div( {className:"image-settings"}, 
-                React.DOM.div(null, "Background image:"),
+                React.DOM.div(null, "背景圖:"),
                 React.DOM.div(null, "Url:",' ',
-                    React.DOM.input( {type:"text",
-                            className:"graph-settings-background-url",
-                            ref:"bg-url",
-                            defaultValue:this.props.backgroundImage.url,
-                            onKeyPress:this.changeBackgroundUrl,
-                            onBlur:this.changeBackgroundUrl} ),
+                    BlurInput(  {value:this.props.backgroundImage.url,
+                                onChange:this.changeBackgroundUrl}),
                     InfoTip(null, 
-                        React.DOM.p(null, "Create an image in graphie, or use the \"Add image\""+' '+
-                        "function to create a background.")
+                        React.DOM.p(null, "請在圖形中增加圖片，或於欄中輸入圖片連結。")
                     )
                 ),
                 this.props.backgroundImage.url && React.DOM.div(null, 
@@ -4518,25 +4520,25 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
                 this.props.showRuler && React.DOM.div(null, 
                     React.DOM.div(null, 
                         React.DOM.label(null, 
-                            ' ',"Ruler label:",' ',
+                            ' ',"直尺單位:",' ',
                             React.DOM.select(
                                 {onChange:this.changeRulerLabel,
                                 value:this.props.rulerLabel} , 
-                                    React.DOM.option( {value:""}, "None"),
-                                    React.DOM.optgroup( {label:"Metric"}, 
+                                    React.DOM.option( {value:""}, "無"),
+                                    React.DOM.optgroup( {label:"公制"}, 
                                         this.renderLabelChoices([
-                                            ["milimeters", "mm"],
-                                            ["centimeters", "cm"],
-                                            ["meters", "m"],
-                                            ["kilometers", "km"]
+                                            ["公厘", "mm"],
+                                            ["公分", "cm"],
+                                            ["公尺", "m"],
+                                            ["公里", "km"]
                                         ])
                                     ),
-                                    React.DOM.optgroup( {label:"Imperial"}, 
+                                    React.DOM.optgroup( {label:"英制"}, 
                                         this.renderLabelChoices([
-                                            ["inches", "in"],
-                                            ["feet", "ft"],
-                                            ["yards", "yd"],
-                                            ["miles", "mi"]
+                                            ["英吋", "in"],
+                                            ["英呎", "ft"],
+                                            ["碼", "yd"],
+                                            ["英里", "mi"]
                                         ])
                                     )
                             )
@@ -4544,7 +4546,7 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
                     ),
                     React.DOM.div(null, 
                         React.DOM.label(null, 
-                            ' ',"Ruler ticks:",' ',
+                            ' ',"直尺間隔:",' ',
                             React.DOM.select(
                                 {onChange:this.changeRulerTicks,
                                 value:this.props.rulerTicks} , 
@@ -4749,36 +4751,26 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
         }
     },
 
-    changeBackgroundUrl: function(e) {
-        var self = this;
+    setUrl: function(url, width, height) {
+        var image = _.clone(this.props.backgroundImage);
+        image.url = url;
+        image.width = width;
+        image.height = height;
+        this.props.onChange({
+            backgroundImage: image,
+            markings: url ? "none" : "graph"
+        });
+    },
 
-        // Only continue on blur or "enter"
-        if (e.type === "keypress" && e.keyCode !== 13) {
-            return;
-        }
-
-        var url = self.refs["bg-url"].getDOMNode().value;
-        var setUrl = function() {
-            var image = _.clone(self.props.backgroundImage);
-            image.url = url;
-            image.width = img.width;
-            image.height = img.height;
-            self.props.onChange({
-                backgroundImage: image,
-                markings: url ? "none" : "graph"
-            });
-        };
+    changeBackgroundUrl: function(url) {
         if (url) {
-            var img = new Image();
-            img.onload = setUrl;
-            img.src = url;
+            if(this.props.backgroundImage.url != url){
+                var img = new Image();
+                img.onload = function()  {return this.setUrl(url, img.width, img.height);}.bind(this);
+                img.src = url;
+            }
         } else {
-            var img = {
-                url: url,
-                width: 0,
-                height: 0
-            };
-            setUrl();
+            this.setUrl(url,0,0);
         }
     },
 
@@ -4801,7 +4793,7 @@ var GraphSettings = React.createClass({displayName: 'GraphSettings',
 
 module.exports = GraphSettings;
 
-},{"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../components/range-input.jsx":131,"../mixins/changeable.jsx":159,"../util.js":168,"react":115,"react-components/button-group":3,"react-components/info-tip":5}],122:[function(require,module,exports){
+},{"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../components/range-input.jsx":63,"../mixins/changeable.jsx":91,"../util.js":100,"react":45,"react-components/blur-input":36,"react-components/button-group":37,"react-components/info-tip":39}],54:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -4990,7 +4982,7 @@ var Graph = React.createClass({displayName: 'Graph',
         $(graphieDiv).empty();
         var labels = this.props.labels;
         var range = this.props.range;
-        var graphie = this._graphie = KhanUtil.createGraphie(graphieDiv);
+        var graphie = this._graphie = KhanUtil.currentGraph = KhanUtil.createGraphie(graphieDiv);
 
         var gridConfig = this._getGridConfig();
         graphie.snap = this.props.snapStep;
@@ -5109,7 +5101,7 @@ var Graph = React.createClass({displayName: 'Graph',
 
         if (this.props.showProtractor) {
             var coord = this.pointsFromNormalized([[0.50, 0.05]])[0];
-            this.protractor = this._graphie.protractor(coord);
+            this.protractor = this._graphie.Protractor(coord);
         }
     },
 
@@ -5121,7 +5113,7 @@ var Graph = React.createClass({displayName: 'Graph',
         if (this.props.showRuler) {
             var coord = this.pointsFromNormalized([[0.50, 0.25]])[0];
             var extent = this._graphie.range[0][1] - this._graphie.range[0][0];
-            this.ruler = this._graphie.ruler({
+            this.ruler = this._graphie.Ruler({
                 center: coord,
                 label: this.props.rulerLabel,
                 pixelsPerUnit: this._graphie.scale[0],
@@ -5140,7 +5132,7 @@ var Graph = React.createClass({displayName: 'Graph',
 
 module.exports = Graph;
 
-},{"../util.js":168,"react":115}],123:[function(require,module,exports){
+},{"../util.js":100,"react":45}],55:[function(require,module,exports){
 /** @jsx React.DOM */var Util = require("../util.js");
 var nestedMap = Util.nestedMap;
 var deepEq = Util.deepEq;
@@ -5271,7 +5263,7 @@ module.exports = {
     createSimpleClass: createSimpleClass
 };
 
-},{"../util.js":168}],124:[function(require,module,exports){
+},{"../util.js":100}],56:[function(require,module,exports){
 /** @jsx React.DOM */var GraphieClasses = require("./graphie-classes.jsx");
 var Interactive2 = require("../interactive2.js");
 var InteractiveUtil = require("../interactive2/interactive-util.js");
@@ -5322,7 +5314,7 @@ module.exports = {
     MovablePoint: MovablePoint
 };
 
-},{"../interactive2.js":148,"../interactive2/interactive-util.js":149,"./graphie-classes.jsx":123}],125:[function(require,module,exports){
+},{"../interactive2.js":80,"../interactive2/interactive-util.js":81,"./graphie-classes.jsx":55}],57:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var GraphieClasses = require("./graphie-classes.jsx");
@@ -5450,7 +5442,8 @@ var Graphie = React.createClass({displayName: 'Graphie',
             onClick: this.props.onClick,
             onMouseDown: this.props.onMouseDown,
             onMouseUp: this.props.onMouseUp,
-            onMouseMove: this.props.onMouseMove
+            onMouseMove: this.props.onMouseMove,
+            allowScratchpad: this.props.allowScratchpad
         });
         graphie.snap = this.props.options.snapStep || [1, 1];
         this.props.setup(graphie, this.props.options);
@@ -5601,7 +5594,7 @@ _.extend(Graphie, Movables);
 
 module.exports = Graphie;
 
-},{"../interactive2/interactive-util.js":149,"../util.js":168,"./graphie-classes.jsx":123,"./graphie-movables.jsx":124}],126:[function(require,module,exports){
+},{"../interactive2/interactive-util.js":81,"../util.js":100,"./graphie-classes.jsx":55,"./graphie-movables.jsx":56}],58:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -5761,7 +5754,7 @@ var InputWithExamples = React.createClass({displayName: 'InputWithExamples',
 
 module.exports = InputWithExamples;
 
-},{"../perseus-api.jsx":162,"../renderer.jsx":165,"../util.js":168,"./math-input.jsx":127,"./text-input.jsx":134,"react":115,"react-components/tooltip":114}],127:[function(require,module,exports){
+},{"../perseus-api.jsx":94,"../renderer.jsx":97,"../util.js":100,"./math-input.jsx":59,"./text-input.jsx":66,"react":45,"react-components/tooltip":44}],59:[function(require,module,exports){
 /** @jsx React.DOM */
 
 // TODO(alex): Package MathQuill
@@ -5780,7 +5773,9 @@ var MathInput = React.createClass({displayName: 'MathInput',
         convertDotToTimes: PT.bool,
         buttonsVisible: PT.oneOf(['always', 'never', 'focused']),
         onFocus: PT.func,
-        onBlur: PT.func
+        onBlur: PT.func,
+        buttonSets: TexButtons.buttonSetsType.isRequired,
+        offsetLeft: PT.number
     },
 
     render: function() {
@@ -5794,11 +5789,22 @@ var MathInput = React.createClass({displayName: 'MathInput',
         });
 
         var buttons = null;
+        var button_height = "0px";
         if (this._shouldShowButtons()) {
             buttons = TexButtons(
                 {className:"math-input-buttons absolute",
                 convertDotToTimes:this.props.convertDotToTimes,
-                onInsert:this.insert} );
+                onInsert:this.insert,
+                sets:this.props.buttonSets} );
+            button_height = (6 + 58 * this.props.buttonSets.length).toString() + "px";
+        }
+        var button_left = "0px";
+        if(!this.props.inEditor){
+            if (this.props.offsetLeft >= 260){
+                button_left = "-240px";
+            } else if (this.props.offsetLeft > 130 && this.props.offsetLeft < 260){
+                button_left = "-120px";
+            }
         }
 
         return React.DOM.div( {style:{display: "inline-block"}}, 
@@ -5808,7 +5814,7 @@ var MathInput = React.createClass({displayName: 'MathInput',
                       onFocus:this.handleFocus,
                       onBlur:this.handleBlur} )
             ),
-            React.DOM.div( {style:{position: "relative"}}, 
+            React.DOM.div( {style:{position: "relative", height: button_height, left: button_left}}, 
                 buttons
             )
         );
@@ -5998,7 +6004,7 @@ var MathInput = React.createClass({displayName: 'MathInput',
 
 module.exports = MathInput;
 
-},{"./tex-buttons.jsx":133,"react":115,"underscore":116}],128:[function(require,module,exports){
+},{"./tex-buttons.jsx":65,"react":45,"underscore":46}],60:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -6070,7 +6076,7 @@ var MultiButtonGroup = React.createClass({displayName: 'MultiButtonGroup',
 
 module.exports = MultiButtonGroup;
 
-},{"react":115}],129:[function(require,module,exports){
+},{"react":45}],61:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -6249,7 +6255,7 @@ var NumberInput = React.createClass({displayName: 'NumberInput',
 
 module.exports = NumberInput;
 
-},{"../util.js":168,"react":115}],130:[function(require,module,exports){
+},{"../util.js":100,"react":45}],62:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -6311,7 +6317,7 @@ var PropCheckBox = React.createClass({displayName: 'PropCheckBox',
 
 module.exports = PropCheckBox;
 
-},{"react":115}],131:[function(require,module,exports){
+},{"react":45}],63:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -6370,7 +6376,7 @@ var RangeInput = React.createClass({displayName: 'RangeInput',
 
 module.exports = RangeInput;
 
-},{"../components/number-input.jsx":129,"react":115}],132:[function(require,module,exports){
+},{"../components/number-input.jsx":61,"react":45}],64:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -6887,7 +6893,7 @@ var Sortable = React.createClass({displayName: 'Sortable',
 
 module.exports = Sortable;
 
-},{"../renderer.jsx":165,"../util.js":168,"react":115}],133:[function(require,module,exports){
+},{"../renderer.jsx":97,"../util.js":100,"react":45}],65:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React     = require("react");
@@ -6903,38 +6909,42 @@ var symbStyle = { fontSize: "130%" };
 // on the page rather than reusing an instance (which will cause an error).
 // Also, it's useful for things which might look different depending on the
 // props.
-var buttons = [
 
-    // basics
-    [
-        function()  {return [React.DOM.span( {style:slightlyBig}, "+"), "+"];},
-        function()  {return [React.DOM.span( {style:prettyBig}, "-"), "-"];},
+var basic = [
 
-        // TODO(joel) - display as \cdot when appropriate
-        function(props)  {
-            if (props.convertDotToTimes) {
-                return [TeX( {style:prettyBig}, "\\times"), "\\times"];
-            } else {
-                return [TeX( {style:prettyBig}, "\\cdot"), "\\cdot"];
+    function()  {return [React.DOM.span( {style:slightlyBig}, "+"), "+"];},
+    function()  {return [React.DOM.span( {style:prettyBig}, "-"), "-"];},
+
+    // TODO(joel) - display as \cdot when appropriate
+    function(props)  {
+        if (props.convertDotToTimes) {
+            return [TeX( {style:prettyBig}, "\\times"), "\\times"];
+        } else {
+            return [TeX( {style:prettyBig}, "\\cdot"), "\\cdot"];
+        }
+    },
+    function()  {return [
+        TeX( {style:prettyBig}, "\\frac{□}{□}"),
+
+        // If there's something in the input that can become part of a
+        // fraction, typing "/" puts it in the numerator. If not, typing
+        // "/" does nothing. In that case, enter a \frac.
+        function(input)  {
+            var contents = input.latex();
+            input.cmd("\\frac");
             }
-        },
-        function()  {return [
-            TeX( {style:prettyBig}, "\\frac{□}{□}"),
+        
+    ];},
+    function()  {return [TeX( {style:slightlyBig}, "\\div"), "\\div"];},
+    function()  {return [TeX( {style:slightlyBig, key:"eq"}, "="), "="];},
 
-            // If there's something in the input that can become part of a
-            // fraction, typing "/" puts it in the numerator. If not, typing
-            // "/" does nothing. In that case, enter a \frac.
-            function(input)  {
-                var contents = input.latex();
-                input.typedText("/");
-                if (input.latex() === contents) {
-                    input.cmd("\\frac");
-                }
-            }
-        ];}
-    ],
+];
 
-    // relations
+var buttonSets = {
+
+    basic:basic,
+
+    relations:
     [
         // [<TeX>{"="}</TeX>, "\\eq"],
         function()  {return [TeX(null, "\\neq"), "\\neq"];},
@@ -6944,8 +6954,7 @@ var buttons = [
         function()  {return [TeX(null, "\\gt"), "\\gt"];},
     ],
 
-    // trig
-    [
+    trig:[
         function()  {return [TeX(null, "\\sin"), "\\sin"];},
         function()  {return [TeX(null, "\\cos"), "\\cos"];},
         function()  {return [TeX(null, "\\tan"), "\\tan"];},
@@ -6953,13 +6962,10 @@ var buttons = [
         function()  {return [TeX( {style:symbStyle}, "\\phi"), "\\phi"];}
     ],
 
-    // prealgebra
-    [
+    prealgebra:[
         function()  {return [TeX(null, "\\sqrt{x}"), "\\sqrt"];},
-        // TODO(joel) - how does desmos do this?
-        // ["\\sqrt[3]{x}", "\\sqrt[3]{x}"],
         function()  {return [
-            TeX( {style:slightlyBig}, "□^a"),
+            TeX( {style:slightlyBig}, "a^□"),
             function(input)  {
                 var contents = input.latex();
                 input.keystroke("Up");
@@ -6971,14 +6977,28 @@ var buttons = [
         function()  {return [TeX( {style:slightlyBig}, "\\pi"), "\\pi"];}
     ]
 
-];
+};
+
+//declare buttonSetsType type from buttonSets
+var buttonSetsType = React.PropTypes.arrayOf(
+        React.PropTypes.oneOf(_(buttonSets).keys())
+    );
 
 var TexButtons = React.createClass({displayName: 'TexButtons',
     propTypes: {
-        onInsert: React.PropTypes.func.isRequired
+        onInsert: React.PropTypes.func.isRequired,
+        sets: buttonSetsType.isRequired,
     },
+
     render: function() {
-        var buttonRows = _(buttons).map(function(row)  {return row.map(function(symbGen)  {
+        // sort this.props.sets component by key_index of buttonSets 
+        // var sortedButtonSets = _.sortBy(this.props.sets,
+        //     (setName) => _.keys(buttonSets).indexOf(setName));
+
+        // make buttonSet(checked) by this.props.sets from buttonSets(template) 
+        var buttonSet = _(this.props.sets).map(function(setName)  {return buttonSets[setName];});
+
+        var buttonRows = _(buttonSet).map(function(row)  {return row.map(function(symbGen)  {
             // create a (component, thing we should send to mathquill) pair
             var symbol = symbGen(this.props);
             return React.DOM.button( {onClick:function()  {return this.props.onInsert(symbol[1]);}.bind(this),
@@ -6990,18 +7010,25 @@ var TexButtons = React.createClass({displayName: 'TexButtons',
         }.bind(this));}.bind(this));
 
         var buttonPopup = _(buttonRows).map(function(row, i)  {
-            return React.DOM.div( {className:"clearfix tex-button-row"}, row);
-        });
+            return React.DOM.div( {className:"clearfix tex-button-row",
+                    key:this.props.sets[i]}, 
+                row
+            );
+        }.bind(this));
 
         return React.DOM.div( {className:this.props.className}, 
             buttonPopup
         );
+    },
+    statics: {
+        buttonSets:buttonSets,
+        buttonSetsType:buttonSetsType
     }
 });
 
 module.exports = TexButtons;
 
-},{"react":115,"react-components/tex":113}],134:[function(require,module,exports){
+},{"react":45,"react-components/tex":43}],66:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var TextInput = React.createClass({displayName: 'TextInput',
@@ -7033,7 +7060,7 @@ var TextInput = React.createClass({displayName: 'TextInput',
 
 module.exports = TextInput;
 
-},{}],135:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var textWidthCache = {};
@@ -7163,7 +7190,7 @@ var TextListEditor = React.createClass({displayName: 'TextListEditor',
 
 module.exports = TextListEditor;
 
-},{}],136:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /** @jsx React.DOM */
 
 // Responsible for combining the text diffs from text-diff and the widget
@@ -7278,7 +7305,7 @@ var RevisionDiff = React.createClass({displayName: 'RevisionDiff',
 
 module.exports = RevisionDiff;
 
-},{"./text-diff.jsx":139,"./widget-diff.jsx":141}],137:[function(require,module,exports){
+},{"./text-diff.jsx":71,"./widget-diff.jsx":73}],69:[function(require,module,exports){
 /** @jsx React.DOM */// Split a word-wise diff generated by jsdiff into multiple lines, for the
 // purpose of breaking up the diffs into lines, so that modified lines can be
 // faintly highlighted
@@ -7308,7 +7335,7 @@ var splitDiff = function(diffEntries) {
 
 module.exports = splitDiff;
 
-},{}],138:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 /** @jsx React.DOM */var jsdiff = require("../../lib/jsdiff");
 
 var statusFor = function(chunk) {
@@ -7378,7 +7405,7 @@ var stringArrayDiff = function(a, b) {
 
 module.exports = stringArrayDiff;
 
-},{"../../lib/jsdiff":1}],139:[function(require,module,exports){
+},{"../../lib/jsdiff":1}],71:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var diff = require("../../lib/jsdiff");
@@ -7543,7 +7570,7 @@ var TextDiff = React.createClass({displayName: 'TextDiff',
 
 module.exports = TextDiff;
 
-},{"../../lib/jsdiff":1,"./split-diff.jsx":137,"./string-array-diff.jsx":138}],140:[function(require,module,exports){
+},{"../../lib/jsdiff":1,"./split-diff.jsx":69,"./string-array-diff.jsx":70}],72:[function(require,module,exports){
 /** @jsx React.DOM */var UNCHANGED = "unchanged";
 var CHANGED = "changed";
 var ADDED = "added";
@@ -7613,7 +7640,7 @@ var performDiff = function(before, after, /* optional */ key) {
 
 module.exports = performDiff;
 
-},{}],141:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var cx = React.addons.classSet;
@@ -7809,7 +7836,7 @@ var WidgetDiff = React.createClass({displayName: 'WidgetDiff',
 
 module.exports = WidgetDiff;
 
-},{"./widget-diff-performer.jsx":140}],142:[function(require,module,exports){
+},{"./widget-diff-performer.jsx":72}],74:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -8093,7 +8120,7 @@ var EditorPage = React.createClass({displayName: 'EditorPage',
 
 module.exports = EditorPage;
 
-},{"./components/prop-check-box.jsx":130,"./enabled-features.jsx":144,"./hint-editor.jsx":145,"./item-editor.jsx":157,"./item-renderer.jsx":158,"./perseus-api.jsx":162,"react":115}],143:[function(require,module,exports){
+},{"./components/prop-check-box.jsx":62,"./enabled-features.jsx":76,"./hint-editor.jsx":77,"./item-editor.jsx":89,"./item-renderer.jsx":90,"./perseus-api.jsx":94,"react":45}],75:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -8106,7 +8133,12 @@ var DragTarget = require("react-components/drag-target");
 var rWidgetSplit = /(\[\[\u2603 [a-z-]+ [0-9]+\]\])/g;
 
 // widgets junyi can use now:
-var widgetsInEditor = ['image'];
+var widgetsInEditor = ['image', 'categorizer', 'dropdown', 'expression',
+                      'input-number', 'interactive-graph', 'interactive-number-line',
+                      'lights-puzzle', 'measurer', 'number-line',
+                      'iframe', 'numeric-input', 'plotter',
+                      'radio', 'sorter', 'table', 'transformer', 'matcher',
+                      'speaking-text-input', 'speaking-voice'];
 
 var WidgetSelect = React.createClass({displayName: 'WidgetSelect',
     handleChange: function(e) {
@@ -8126,13 +8158,13 @@ var WidgetSelect = React.createClass({displayName: 'WidgetSelect',
     },
     render: function() {
         var widgets = Widgets.getPublicWidgets();
-        var junyiValidWidgets = _.pick(widgets, widgetsInEditor[0]);
+        var junyiValidWidgets = _.pick(widgets, widgetsInEditor);
         var orderedWidgetNames = _.sortBy(_.keys(junyiValidWidgets), function(name)  {
             return junyiValidWidgets[name].displayName;
         });
 
         return React.DOM.select( {onChange:this.handleChange}, 
-            React.DOM.option( {value:""}, "Add a widget","\u2026"),
+            React.DOM.option( {value:""}, "新增一個 widget","\u2026"),
             React.DOM.option( {disabled:true}, "--"),
             _.map(orderedWidgetNames, function(name)  {
                 return React.DOM.option( {value:name, key:name}, 
@@ -8182,7 +8214,7 @@ var WidgetEditor = React.createClass({displayName: 'WidgetEditor',
         var isUngradedEnabled = (type === "transformer");
         var direction = this.state.showWidget ? "down" : "right";
 
-        var gradedPropBox = PropCheckBox( {label:"Graded:",
+        var gradedPropBox = PropCheckBox( {label:"評分:",
                                 graded:upgradedWidgetInfo.graded,
                                 onChange:this.props.onChange} );
 
@@ -8690,7 +8722,7 @@ var Editor = React.createClass({displayName: 'Editor',
 
 module.exports = Editor;
 
-},{"./components/prop-check-box.jsx":130,"./util.js":168,"./widgets.js":171,"react":115,"react-components/drag-target":4}],144:[function(require,module,exports){
+},{"./components/prop-check-box.jsx":62,"./util.js":100,"./widgets.js":103,"react":45,"react-components/drag-target":38}],76:[function(require,module,exports){
 /** @jsx React.DOM */var React = require('react');
 
 module.exports = {
@@ -8706,7 +8738,7 @@ module.exports = {
     }
 };
 
-},{"react":115}],145:[function(require,module,exports){
+},{"react":45}],77:[function(require,module,exports){
 /** @jsx React.DOM */
 
 /* Collection of classes for rendering the hint editor area,
@@ -8922,7 +8954,7 @@ var CombinedHintsEditor = React.createClass({displayName: 'CombinedHintsEditor',
 
 module.exports = CombinedHintsEditor;
 
-},{"./editor.jsx":143,"./hint-renderer.jsx":146,"react":115,"react-components/info-tip":5}],146:[function(require,module,exports){
+},{"./editor.jsx":75,"./hint-renderer.jsx":78,"react":45,"react-components/info-tip":39}],78:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -8950,7 +8982,7 @@ var HintRenderer = React.createClass({displayName: 'HintRenderer',
 
 module.exports = HintRenderer;
 
-},{"./renderer.jsx":165,"react":115}],147:[function(require,module,exports){
+},{"./renderer.jsx":97,"react":45}],79:[function(require,module,exports){
 var React = require('react');
 
 var init = function(options) {
@@ -8991,7 +9023,7 @@ var init = function(options) {
 
 module.exports = init;
 
-},{"react":115}],148:[function(require,module,exports){
+},{"react":45}],80:[function(require,module,exports){
 var Movable = require("./interactive2/movable.js");
 var MovablePoint = require("./interactive2/movable-point.js");
 var MovableLine = require("./interactive2/movable-line.js");
@@ -9011,7 +9043,7 @@ var Interactive2 = {
 
 module.exports = Interactive2;
 
-},{"./interactive2/movable-line.js":152,"./interactive2/movable-point.js":154,"./interactive2/movable.js":155}],149:[function(require,module,exports){
+},{"./interactive2/movable-line.js":84,"./interactive2/movable-point.js":86,"./interactive2/movable.js":87}],81:[function(require,module,exports){
 /**
  * Utility functions for writing Interactive2 movablethings
  */
@@ -9089,7 +9121,7 @@ var InteractiveUtil = {
 
 module.exports = InteractiveUtil;
 
-},{"./movable-helper-methods.js":150}],150:[function(require,module,exports){
+},{"./movable-helper-methods.js":82}],82:[function(require,module,exports){
 /**
  * MovableThing convenience methods
  *
@@ -9192,7 +9224,7 @@ var MovableHelperMethods = {
 
 module.exports = MovableHelperMethods;
 
-},{}],151:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 /**
  * A library of options to pass to add/draw/remove/constraints
  */
@@ -9475,7 +9507,7 @@ module.exports = {
     onMoveEnd: {standard: null},
 };
 
-},{}],152:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 /**
  * MovableLine
  */
@@ -9759,7 +9791,7 @@ _.extend(MovableLine.prototype, {
 
 module.exports = MovableLine;
 
-},{"./interactive-util.js":149,"./movable-line-options.js":151,"./objective_.js":156}],153:[function(require,module,exports){
+},{"./interactive-util.js":81,"./movable-line-options.js":83,"./objective_.js":88}],85:[function(require,module,exports){
 /**
  * A library of options to pass to add/draw/remove/constraints
  */
@@ -9904,7 +9936,7 @@ module.exports = {
     onClick: {standard: null}
 };
 
-},{}],154:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 /**
  * Creates and adds a point to the graph that can be dragged around.
  * It allows constraints on its movement and draws when moves happen.
@@ -10237,7 +10269,7 @@ _.extend(MovablePoint.prototype, {
 
 module.exports = MovablePoint;
 
-},{"./interactive-util.js":149,"./movable-point-options.js":153,"./objective_.js":156}],155:[function(require,module,exports){
+},{"./interactive-util.js":81,"./movable-point-options.js":85,"./objective_.js":88}],87:[function(require,module,exports){
 /**
  * Movable
  *
@@ -10502,7 +10534,7 @@ _.extend(Movable.prototype, {
 
 module.exports = Movable;
 
-},{"./interactive-util.js":149}],156:[function(require,module,exports){
+},{"./interactive-util.js":81}],88:[function(require,module,exports){
 /**
  * A work-in-progress of _ methods for objects.
  * That is, they take an object as a parameter,
@@ -10531,7 +10563,7 @@ var pluck = exports.pluck = function(table, subKey) {
     }));
 };
 
-},{}],157:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -10561,6 +10593,7 @@ var ItemEditor = React.createClass({displayName: 'ItemEditor',
     },
 
     render: function() {
+        var img_src = Math.random() > 0.05 ? "/images/face-smiley01.png" : "/images/face-smiley02.png";
         return React.DOM.div( {className:"perseus-editor-table"}, 
             React.DOM.div( {className:"perseus-editor-row perseus-question-container"}, 
                 React.DOM.div( {className:"perseus-editor-left-cell"}, 
@@ -10614,7 +10647,7 @@ var ItemEditor = React.createClass({displayName: 'ItemEditor',
                                 onClick:this.props.onCheckAnswer,
                                 value:"Check Answer"} ),
                             this.props.wasAnswered &&
-                                React.DOM.img( {src:"/images/face-smiley.png",
+                                React.DOM.img( {src:img_src,
                                     className:"smiley"} ),
                             this.props.gradeMessage &&
                                 React.DOM.span(null, this.props.gradeMessage)
@@ -10640,7 +10673,7 @@ var ItemEditor = React.createClass({displayName: 'ItemEditor',
 
 module.exports = ItemEditor;
 
-},{"./answer-area-editor.jsx":118,"./editor.jsx":143,"./version.json":169,"react":115}],158:[function(require,module,exports){
+},{"./answer-area-editor.jsx":50,"./editor.jsx":75,"./version.json":101,"react":45}],90:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -10900,8 +10933,13 @@ var ItemRenderer = React.createClass({displayName: 'ItemRenderer',
                 document.querySelector(this.props.hintsAreaSelector));
     },
 
-    showHint: function() {
-        if (this.state.hintsVisible < this.getNumHints()) {
+    showHint: function(hintNum) {
+        if( hintNum ){
+            this.setState({
+                hintsVisible: ( hintNum + 1 )
+            });
+        }
+        else if (this.state.hintsVisible < this.getNumHints()) {
             this.setState({
                 hintsVisible: this.state.hintsVisible + 1
             });
@@ -10912,6 +10950,22 @@ var ItemRenderer = React.createClass({displayName: 'ItemRenderer',
         return this.props.item.hints.length;
     },
 
+    showGuess: function(answerData) {
+        this.questionRenderer.showGuess(answerData)
+        if (answerData !== undefined && this.questionRenderer.widgetIds.length > 0) {
+            // Left answers for answer widgets only.
+            answerData = answerData[1];
+        }
+        this.answerAreaRenderer.showGuess(answerData);
+        return ;
+    },
+    canShowAllHistoryWidgets: function() {
+        var canShowAllHistoryWidgetsInAnswer = this.answerAreaRenderer.canShowAllHistoryWidgets();
+        var canShowAllHistoryWidgetsInQuestion = this.questionRenderer.canShowAllHistoryWidgets();
+        if (canShowAllHistoryWidgetsInAnswer && canShowAllHistoryWidgetsInQuestion)
+            return true;
+        return false;
+    },
     scoreInput: function() {
         var qGuessAndScore = this.questionRenderer.guessAndScore();
         var aGuessAndScore = this.answerAreaRenderer.guessAndScore();
@@ -10960,7 +11014,7 @@ var ItemRenderer = React.createClass({displayName: 'ItemRenderer',
 
 module.exports = ItemRenderer;
 
-},{"./answer-area-renderer.jsx":119,"./enabled-features.jsx":144,"./hint-renderer.jsx":146,"./perseus-api.jsx":162,"./renderer.jsx":165,"./util.js":168,"react":115}],159:[function(require,module,exports){
+},{"./answer-area-renderer.jsx":51,"./enabled-features.jsx":76,"./hint-renderer.jsx":78,"./perseus-api.jsx":94,"./renderer.jsx":97,"./util.js":100,"react":45}],91:[function(require,module,exports){
 /** @jsx React.DOM */
 /**
  * Changeable
@@ -11061,7 +11115,7 @@ var Changeable = {
 
 module.exports = Changeable;
 
-},{"./widget-prop-blacklist.jsx":161}],160:[function(require,module,exports){
+},{"./widget-prop-blacklist.jsx":93}],92:[function(require,module,exports){
 /** @jsx React.DOM */var WIDGET_PROP_BLACKLIST = require("./widget-prop-blacklist.jsx");
 
 var JsonifyProps = {
@@ -11073,7 +11127,7 @@ var JsonifyProps = {
 
 module.exports = JsonifyProps;
 
-},{"./widget-prop-blacklist.jsx":161}],161:[function(require,module,exports){
+},{"./widget-prop-blacklist.jsx":93}],93:[function(require,module,exports){
 /** @jsx React.DOM */module.exports = [
     // standard props "added" by react
     // (technically the renderer still adds them)
@@ -11087,7 +11141,7 @@ module.exports = JsonifyProps;
     "apiOptions"
 ];
 
-},{}],162:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 /** @jsx React.DOM *//**
  * [Most of] the Perseus client API.
  *
@@ -11146,7 +11200,7 @@ module.exports = {
 };
 
 
-},{}],163:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 require("./all-widgets.js");
 
 var version = require("./version.json");
@@ -11166,7 +11220,7 @@ module.exports = {
     Util:               require("./util.js")
 };
 
-},{"./all-widgets.js":117,"./answer-area-renderer.jsx":119,"./diffs/revision-diff.jsx":136,"./editor-page.jsx":142,"./editor.jsx":143,"./init.js":147,"./item-renderer.jsx":158,"./perseus-api.jsx":162,"./renderer.jsx":165,"./stateful-editor-page.jsx":166,"./util.js":168,"./version.json":169}],164:[function(require,module,exports){
+},{"./all-widgets.js":49,"./answer-area-renderer.jsx":51,"./diffs/revision-diff.jsx":68,"./editor-page.jsx":74,"./editor.jsx":75,"./init.js":79,"./item-renderer.jsx":90,"./perseus-api.jsx":94,"./renderer.jsx":97,"./stateful-editor-page.jsx":98,"./util.js":100,"./version.json":101}],96:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -11182,7 +11236,7 @@ var QuestionParagraph = React.createClass({displayName: 'QuestionParagraph',
 
 module.exports = QuestionParagraph;
 
-},{"react":115}],165:[function(require,module,exports){
+},{"react":45}],97:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -11699,12 +11753,47 @@ var Renderer = React.createClass({displayName: 'Renderer',
         }, function()  {return focus;});
     },
 
+    showGuess: function(answerData) {
+        if( !answerData )
+            return {};
+        return _.map(this.widgetIds, function(id, index) {
+            if (this.refs[id].setAnswerFromJSON === undefined) {
+                // Target widget cannot show answer.
+                return {showSuccess:false,err:'no setAnswerFromJSON implemented for ' + id + ' widget'};
+            } else {
+                // Just show the given answer.
+                if(answerData[0].length<=index) {
+                    console.log("showGuess err");
+                    return {};
+                }
+                widgetAnswerData = answerData[0][index];
+                this.refs[id].setAnswerFromJSON(widgetAnswerData);
+                return {showSuccess:true};
+            }
+        }, this);
+    },
+
+    canShowAllHistoryWidgets: function(answerData) {
+        var r = true;
+        _.map(this.widgetIds, function(id, index) {
+            if (this.refs[id].setAnswerFromJSON === undefined) {
+                if ( id !== 'image 1') {
+                  r = false;
+                }
+            }
+        }, this);
+        return r;
+    },
+
     guessAndScore: function() {
         var widgetProps = this.props.widgets;
         var onInputError = this.props.apiOptions.onInputError ||
                 function() { };
 
         var totalGuess = _.map(this.widgetIds, function(id) {
+            if (id.indexOf('lights-puzzle') > -1 || id.indexOf('transformer') > -1 || id.indexOf('image') > -1) {
+                return 'no save ' + id +' widget'
+            }
             return this.refs[id].toJSON();
         }, this);
 
@@ -11814,7 +11903,7 @@ function extractMathAndWidgets(text) {
 
 module.exports = Renderer;
 
-},{"./enabled-features.jsx":144,"./perseus-api.jsx":162,"./question-paragraph.jsx":164,"./tex.jsx":167,"./util.js":168,"./widget-container.jsx":170,"./widgets.js":171,"react":115}],166:[function(require,module,exports){
+},{"./enabled-features.jsx":76,"./perseus-api.jsx":94,"./question-paragraph.jsx":96,"./tex.jsx":99,"./util.js":100,"./widget-container.jsx":102,"./widgets.js":103,"react":45}],98:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -11857,7 +11946,7 @@ var StatefulEditorPage = React.createClass({displayName: 'StatefulEditorPage',
 
 module.exports = StatefulEditorPage;
 
-},{"./editor-page.jsx":142,"react":115}],167:[function(require,module,exports){
+},{"./editor-page.jsx":74,"react":45}],99:[function(require,module,exports){
 /** @jsx React.DOM */
 /**
  * For math rendered using MathJax. Use me like <TeX>2x + 3</TeX>.
@@ -12010,7 +12099,7 @@ var TeX = React.createClass({displayName: 'TeX',
 
 module.exports = TeX;
 
-},{"react":115}],168:[function(require,module,exports){
+},{"react":45}],100:[function(require,module,exports){
 var nestedMap = function(children, func, context) {
     if (_.isArray(children)) {
         return _.map(children, function(child) {
@@ -12031,6 +12120,22 @@ var Util = {
         earned: 0,
         total: 0,
         message: null
+    },
+
+    asc: function(text) {  // 全型轉半型的 function
+            if (typeof text != "string") {
+                return text
+            }
+            var asciiTable = "!\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+            var big5Table = "%uFF01%u201D%uFF03%uFF04%uFF05%uFF06%u2019%uFF08%uFF09%uFF0A%uFF0B%uFF0C%uFF0D%uFF0E%uFF0F%uFF10%uFF11%uFF12%uFF13%uFF14%uFF15%uFF16%uFF17%uFF18%uFF19%uFF1A%uFF1B%uFF1C%uFF1D%uFF1E%uFF1F%uFF20%uFF21%uFF22%uFF23%uFF24%uFF25%uFF26%uFF27%uFF28%uFF29%uFF2A%uFF2B%uFF2C%uFF2D%uFF2E%uFF2F%uFF30%uFF31%uFF32%uFF33%uFF34%uFF35%uFF36%uFF37%uFF38%uFF39%uFF3A%uFF3B%uFF3C%uFF3D%uFF3E%uFF3F%u2018%uFF41%uFF42%uFF43%uFF44%uFF45%uFF46%uFF47%uFF48%uFF49%uFF4A%uFF4B%uFF4C%uFF4D%uFF4E%uFF4F%uFF50%uFF51%uFF52%uFF53%uFF54%uFF55%uFF56%uFF57%uFF58%uFF59%uFF5A%uFF5B%uFF5C%uFF5D%uFF5E";
+
+            var result = "";
+            for (var i = 0; i < text.length; i++) {
+                var val = escape(text.charAt(i));
+                var j = big5Table.indexOf(val);
+                result += (((j > -1) && (val.length == 6)) ? asciiTable.charAt(j / 6) : text.charAt(i));
+            }
+            return result;
     },
 
     seededRNG: function(seed) {
@@ -12550,7 +12655,7 @@ Util.random = Util.seededRNG(new Date().getTime() & 0xffffffff);
 
 module.exports = Util;
 
-},{}],169:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 module.exports={
     "apiVersion": {
         "major": 1,
@@ -12562,7 +12667,7 @@ module.exports={
     }
 }
 
-},{}],170:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -12601,7 +12706,7 @@ var WidgetContainer = React.createClass({displayName: 'WidgetContainer',
 
 module.exports = WidgetContainer;
 
-},{"react":115}],171:[function(require,module,exports){
+},{"react":45}],103:[function(require,module,exports){
 var widgets = {};
 
 var Widgets = {
@@ -12741,7 +12846,7 @@ var Widgets = {
 
 module.exports = Widgets;
 
-},{}],172:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var Changeable   = require("../mixins/changeable.jsx");
@@ -12773,7 +12878,9 @@ var Categorizer = React.createClass({displayName: 'Categorizer',
             values: []
         };
     },
-
+    setAnswerFromJSON: function(answerData) {
+        this.props.onChange(answerData);
+    },
     getInitialState: function() {
         return {
             uniqueId: _.uniqueId("perseus_radio_")
@@ -12883,13 +12990,13 @@ var CategorizerEditor = React.createClass({displayName: 'CategorizerEditor',
 
     render: function() {
         return React.DOM.div(null, 
-            "Categories:",
+            "類別:",
             TextListEditor(
                 {options:this.props.categories,
                 onChange:function(cat)  {this.change("categories", cat);}.bind(this),
                 layout:"horizontal"} ),
 
-            "Items:",
+            "項目:",
             TextListEditor(
                 {options:this.props.items,
                 onChange:function(items)  {this.change({
@@ -12917,17 +13024,17 @@ var CategorizerEditor = React.createClass({displayName: 'CategorizerEditor',
 
 module.exports = {
     name: "categorizer",
-    displayName: "Categorizer",
+    displayName: "Categorizer/分類器",
     widget: Categorizer,
     editor: CategorizerEditor,
     transform: function(editorProps)  {
         return _.pick(editorProps, "items", "categories");
     },
-    hidden: true
+    hidden: false
 };
 
 
-},{"../components/text-list-editor.jsx":135,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../renderer.jsx":165,"../util.js":168}],173:[function(require,module,exports){
+},{"../components/text-list-editor.jsx":67,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../renderer.jsx":97,"../util.js":100}],105:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -12957,7 +13064,9 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
             apiOptions: ApiOptions.defaults
         };
     },
-
+    setAnswerFromJSON: function(answerData) {
+        this.props.onChange({selected:answerData.value});
+    },
     render: function() {
         var choices = this.props.choices.slice();
 
@@ -12980,11 +13089,15 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
             );
 
         } else {
+            var style = {
+                fontSize: "120%"
+            };
             return React.DOM.select(
                         {onChange:this._handleChangeEvent,
                         onTouchStart:captureScratchpadTouchStart,
                         className:"perseus-widget-dropdown",
-                        value:this.props.selected}, 
+                        value:this.props.selected,
+                        style:style}, 
                 React.DOM.option( {value:0, disabled:true}, 
                     this.props.placeholder
                 ),
@@ -13069,24 +13182,19 @@ var DropdownEditor = React.createClass({displayName: 'DropdownEditor',
     render: function() {
         var dropdownGroupName = _.uniqueId("perseus_dropdown_");
         return React.DOM.div( {className:"perseus-widget-dropdown"}, 
-            React.DOM.div(null, "Dropdown",
+            React.DOM.div(null, "下拉式選單",
                 InfoTip(null, 
-                    React.DOM.p(null, "The drop down is useful for making inequalities in a"+' '+
-                    "custom format. We normally use the symbols ", "<",", ", ">",","+' '+
-                    "≤, ≥ (in that order) which you can copy into the"+' '+
-                    "choices. When possible, use the \"multiple choice\" answer"+' '+
-                    "type instead.")
+                    React.DOM.p(null, "短敘述的單選題。例如： ", "<",", ", ">",","+' '+
+                    "≤, ≥ " )
                 )
             ),
             React.DOM.input(
                 {type:"text",
-                placeholder:"Placeholder value",
+                placeholder:"預設值",
                 value:this.props.placeholder,
                 onChange:this.onPlaceholderChange} ),
             InfoTip(null, 
-                React.DOM.p(null, "This value will appear as the drop down default. It should"+' '+
-                "give the user some indication of the values available in the"+' '+
-                "drop down itself, e.g., Yes/No/Maybe.")
+                React.DOM.p(null, "這會顯示為下拉式選單的預設值，可以給使用者一些下拉式選單可能答案的指示。例如：是/不是/可能是。")
             ),
             React.DOM.ul(null, 
                 this.props.choices.map(function(choice, i) {
@@ -13117,7 +13225,7 @@ var DropdownEditor = React.createClass({displayName: 'DropdownEditor',
                 React.DOM.a( {href:"#", className:"simple-button orange",
                         onClick:this.addChoice}, 
                     React.DOM.span( {className:"icon-plus"} ),
-                    ' ',"Add a choice",' '
+                    ' ',"增加選項",' '
                 )
             )
         );
@@ -13179,14 +13287,14 @@ var propTransform = function(editorProps)  {
 
 module.exports = {
     name: "dropdown",
-    displayName: "Drop down",
+    displayName: "Drop down/下拉式選單",
     widget: Dropdown,
     editor: DropdownEditor,
     transform: propTransform,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/fancy-select.jsx":120,"../mixins/jsonify-props.jsx":160,"../perseus-api.jsx":162,"../util.js":168,"react":115,"react-components/info-tip":5}],174:[function(require,module,exports){
+},{"../components/fancy-select.jsx":52,"../mixins/jsonify-props.jsx":92,"../perseus-api.jsx":94,"../util.js":100,"react":45,"react-components/info-tip":39}],106:[function(require,module,exports){
 /** @jsx React.DOM */
 
 /**
@@ -13376,12 +13484,12 @@ var ExampleGraphieWidgetEditor = React.createClass({displayName: 'ExampleGraphie
 module.exports = {
     name: "example-graphie-widget",
     displayName: "Example Graphie Widget",
-    hidden: true,   // Hides this widget from the Perseus.Editor widget select
+    hidden: false,   // Hides this widget from the Perseus.Editor widget select
     widget: ExampleGraphieWidget,
     editor: ExampleGraphieWidgetEditor
 };
 
-},{"../components/graphie.jsx":125,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../util.js":168,"react":115}],175:[function(require,module,exports){
+},{"../components/graphie.jsx":57,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../util.js":100,"react":45}],107:[function(require,module,exports){
 /** @jsx React.DOM */
 
 /**
@@ -13560,12 +13668,12 @@ var ExampleWidgetEditor = React.createClass({displayName: 'ExampleWidgetEditor',
 module.exports = {
     name: "example-widget",
     displayName: "Example Widget",
-    hidden: true,   // Hides this widget from the Perseus.Editor widget select
+    hidden: false,   // Hides this widget from the Perseus.Editor widget select
     widget: ExampleWidget,
     editor: ExampleWidgetEditor
 };
 
-},{"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"react":115}],176:[function(require,module,exports){
+},{"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"react":45}],108:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React   = require("react");
@@ -13586,12 +13694,13 @@ var TexButtons        = require("../components/tex-buttons.jsx");
 
 var cx = React.addons.classSet;
 var EnabledFeatures = require("../enabled-features.jsx");
+var Util = require("../util.js");
 
 var ERROR_MESSAGE = $._("Sorry, I don't understand that!");
 
 // The new, MathQuill input expression widget
 var Expression = React.createClass({displayName: 'Expression',
-    mixins: [Changeable, JsonifyProps],
+    mixins: [Changeable],
 
     propTypes: {
         value: React.PropTypes.string,
@@ -13599,7 +13708,9 @@ var Expression = React.createClass({displayName: 'Expression',
         functions: React.PropTypes.arrayOf(React.PropTypes.string),
         buttonsVisible: React.PropTypes.oneOf(['always', 'never', 'focused']),
         enabledFeatures: EnabledFeatures.propTypes,
-        apiOptions: ApiOptions.propTypes
+        apiOptions: ApiOptions.propTypes,
+        buttonSets: TexButtons.buttonSetsType,
+        easybuttons: React.PropTypes.bool,
     },
 
     getDefaultProps: function() {
@@ -13610,14 +13721,15 @@ var Expression = React.createClass({displayName: 'Expression',
             onFocus: function() { },
             onBlur: function() { },
             enabledFeatures: EnabledFeatures.defaults,
-            apiOptions: ApiOptions.defaults
+            apiOptions: ApiOptions.defaults,
         };
     },
 
     getInitialState: function() {
         return {
             showErrorTooltip: false,
-            showErrorText: false
+            showErrorText: false,
+            offsetLeft: 0
         };
     },
 
@@ -13631,7 +13743,24 @@ var Expression = React.createClass({displayName: 'Expression',
         return KAS.parse(value, options);
     },
 
+    componentDidMount: function() {
+        var expression = this.getDOMNode();
+        this.setState({offsetLeft: expression.offsetLeft});
+    },
+
     render: function() {
+        // for old questions without buttonSets, make buttonSets by easybuttons
+        if (!this.props.buttonSets)
+        {
+            if(!this.props.easybuttons) {
+                this.props.buttonSets = ["basic", "relations", "trig", "prealgebra"];
+            }
+            else {
+                this.props.buttonSets = ["basic"];
+            }
+            this.props.onChange;
+        }
+
         if (this.props.apiOptions.staticRender) {
             var style = {
                 borderRadius: "5px",
@@ -13681,18 +13810,27 @@ var Expression = React.createClass({displayName: 'Expression',
                 "show-error-tooltip": this.state.showErrorTooltip
             });
 
+            var inEditor = window.location.pathname.indexOf("/questionpanel/perseus_editor/") >= 0;
+
             return React.DOM.span( {className:className}, 
                 MathInput(
                     {ref:"input",
                     value:this.props.value,
-                    onChange:this.change("value"),
+                    onChange:this.handleChange,
                     convertDotToTimes:this.props.times,
                     buttonsVisible:this.props.buttonsVisible || "focused",
+                    buttonSets:this.props.buttonSets,
                     onFocus:this._handleFocus,
-                    onBlur:this._handleBlur} ),
+                    onBlur:this._handleBlur,
+                    offsetLeft:this.state.offsetLeft,
+                    inEditor:inEditor} ),
                 this.state.showErrorTooltip && errorTooltip
             );
         }
+    },
+    
+    handleChange: function(newValue) {
+        this.props.onChange({ value: Util.asc(newValue) });
     },
 
     _handleFocus: function() {
@@ -13756,6 +13894,17 @@ var Expression = React.createClass({displayName: 'Expression',
         return Expression.validate(this.toJSON(), rubric, onInputError);
     },
 
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = {value: ""};
+        }
+        this.props.onChange(answerData);
+    },
+
+    toJSON: function(skipValidation) {
+        return {value: this.props.value};
+    },
+
     statics: {
         displayMode: "inline-block"
     }
@@ -13799,282 +13948,7 @@ _.extend(Expression, {
     }
 });
 
-// The old, plain-text input expression widget
-var OldExpression = React.createClass({displayName: 'OldExpression',
-    propTypes: {
-        value: React.PropTypes.string,
-        times: React.PropTypes.bool,
-        functions: React.PropTypes.arrayOf(React.PropTypes.string),
-        enabledFeatures: EnabledFeatures.propTypes
-    },
 
-    getDefaultProps: function() {
-        return {
-            value: "",
-            times: false,
-            functions: [],
-            onFocus: function() { },
-            onBlur: function() { },
-            enabledFeatures: EnabledFeatures.defaults,
-            apiOptions: ApiOptions.defaults
-        };
-    },
-
-    getInitialState: function() {
-        return {
-            lastParsedTex: ""
-        };
-    },
-
-    parse: function(value, props) {
-        // TODO(jack): Disable icu for content creators here, or
-        // make it so that solution answers with ','s or '.'s work
-        var options = _.pick(props || this.props, "functions");
-        if (icu && icu.getDecimalFormatSymbols) {
-            _.extend(options, icu.getDecimalFormatSymbols());
-        }
-        return KAS.parse(value, options);
-    },
-
-    componentWillMount: function() {
-        this.updateParsedTex(this.props.value);
-    },
-
-    componentWillReceiveProps: function(nextProps) {
-        this.updateParsedTex(nextProps.value, nextProps);
-    },
-
-    render: function() {
-        var result = this.parse(this.props.value);
-        var shouldShowExamples = this.props.enabledFeatures.toolTipFormats;
-
-        return React.DOM.span( {className:"perseus-widget-expression-old"}, 
-            InputWithExamples(
-                    {ref:"input",
-                    value:this.props.value,
-                    onKeyDown:this.handleKeyDown,
-                    onKeyPress:this.handleKeyPress,
-                    onChange:this.handleChange,
-                    examples:this.examples(),
-                    shouldShowExamples:shouldShowExamples,
-                    interceptFocus:this._getInterceptFocus(),
-                    onFocus:this._handleFocus,
-                    onBlur:this._handleBlur} ),
-            React.DOM.span( {className:"output"}, 
-                React.DOM.span( {className:"tex",
-                        style:{opacity: result.parsed ? 1.0 : 0.5}}, 
-                    TeX(null, this.state.lastParsedTex)
-                ),
-                React.DOM.span( {className:"placeholder"}, 
-                    React.DOM.span( {ref:"error", className:"error",
-                            style:{display: "none"}}, 
-                        React.DOM.span( {className:"buddy"} ),
-                        React.DOM.span( {className:"message"}, React.DOM.span(null, 
-                            ERROR_MESSAGE
-                        ))
-                    )
-                )
-            )
-        );
-    },
-
-    _handleFocus: function() {
-        this.props.onFocus([], this.refs.input.getInputDOMNode());
-    },
-
-    _handleBlur: function() {
-        this.props.onBlur([], this.refs.input.getInputDOMNode());
-    },
-
-    _getInterceptFocus: function() {
-        return this.props.apiOptions.interceptInputFocus ?
-                this._interceptFocus : null;
-    },
-
-    _interceptFocus: function() {
-        var interceptProp = this.props.apiOptions.interceptInputFocus;
-        if (interceptProp) {
-            return interceptProp(
-                this.props.widgetId,
-                this.refs.input.getInputDOMNode()
-            );
-        }
-    },
-
-    errorTimeout: null,
-
-    componentDidMount: function() {
-        this.componentDidUpdate();
-    },
-
-    componentDidUpdate: function() {
-        clearTimeout(this.errorTimeout);
-        if (this.parse(this.props.value).parsed) {
-            this.hideError();
-        } else {
-            this.errorTimeout = setTimeout(this.showError, 2000);
-        }
-    },
-
-    componentWillUnmount: function() {
-        clearTimeout(this.errorTimeout);
-    },
-
-    showError: function() {
-        var apiResult = this.props.apiOptions.onInputError(
-            null, // reserved for some widget identifier
-            this.props.value,
-            ERROR_MESSAGE
-        );
-        if (apiResult !== false) {
-            var $error = $(this.refs.error.getDOMNode());
-            if (!$error.is(":visible")) {
-                $error.css({ top: 50, opacity: 0.1 }).show()
-                    .animate({ top: 0, opacity: 1.0 }, 300);
-            }
-        } else {
-            this.hideError();
-        }
-    },
-
-    hideError: function() {
-        var $error = $(this.refs.error.getDOMNode());
-        if ($error.is(":visible")) {
-            $error.animate({ top: 50, opacity: 0.1 }, 300, function() {
-                $(this).hide();
-            });
-        }
-    },
-
-    /**
-     * The keydown handler handles clearing the error timeout, telling
-     * props.value to update, and intercepting the backspace key when
-     * appropriate...
-     */
-    handleKeyDown: function(event) {
-        var input = this.refs.input.getDOMNode();
-        var text = input.value;
-
-        var start = input.selectionStart;
-        var end = input.selectionEnd;
-        var supported = start !== undefined;
-
-        var which = event.nativeEvent.keyCode;
-
-        if (supported && which === 8 /* backspace */) {
-            if (start === end && text.slice(start - 1, start + 1) === "()") {
-                event.preventDefault();
-                var val = text.slice(0, start - 1) + text.slice(start + 1);
-
-                // this.props.onChange will update the value for us, but
-                // asynchronously, making it harder to set the selection
-                // usefully, so we just set .value directly here as well.
-                input.value = val;
-                input.selectionStart = start - 1;
-                input.selectionEnd = end - 1;
-                this.props.onChange({value: val});
-            }
-        }
-    },
-
-    /**
-     * ...whereas the keypress handler handles the parentheses because keyCode
-     * is more useful for actual character insertions (keypress gives 40 for an
-     * open paren '(' instead of keydown which gives 57, the code for '9').
-     */
-    handleKeyPress: function(event) {
-        var input = this.refs.input.getDOMNode();
-        var text = input.value;
-
-        var start = input.selectionStart;
-        var end = input.selectionEnd;
-        var supported = start !== undefined;
-
-        var which = event.nativeEvent.charCode;
-
-        if (supported && which === 40 /* left paren */) {
-            event.preventDefault();
-
-            var val;
-            if (start === end) {
-                var insertMatched = _.any([" ", ")", ""], function(val) {
-                    return text.charAt(start) === val;
-                });
-
-                val = text.slice(0, start) +
-                        (insertMatched ? "()" : "(") + text.slice(end);
-            } else {
-                val = text.slice(0, start) +
-                        "(" + text.slice(start, end) + ")" + text.slice(end);
-            }
-
-            input.value = val;
-            input.selectionStart = start + 1;
-            input.selectionEnd = end + 1;
-            this.props.onChange({value: val});
-
-        } else if (supported && which === 41 /* right paren */) {
-            if (start === end && text.charAt(start) === ")") {
-                event.preventDefault();
-                input.selectionStart = start + 1;
-                input.selectionEnd = end + 1;
-            }
-        }
-    },
-
-    handleChange: function(newValue) {
-        this.props.onChange({value: newValue});
-    },
-
-    focus: function() {
-        this.refs.input.focus();
-        return true;
-    },
-
-    toJSON: function(skipValidation) {
-        return {value: this.props.value};
-    },
-
-    updateParsedTex: function(value, props) {
-        var result = this.parse(value, props);
-        var options = _.pick(this.props, "times");
-        if (result.parsed) {
-            this.setState({lastParsedTex: result.expr.asTex(options)});
-        }
-    },
-
-    simpleValidate: function(rubric, onInputError) {
-        onInputError = onInputError || function() { };
-        return Expression.validate(this.toJSON(), rubric, onInputError);
-    },
-
-    examples: function() {
-        var mult = $._("For $2\\cdot2$, enter **2*2**");
-        if (this.props.times) {
-            mult = mult.replace(/\\cdot/g, "\\times");
-        }
-
-        return [
-            $._("**Acceptable Formats**"),
-            mult,
-            $._("For $3y$, enter **3y** or **3*y**"),
-            $._("For $\\dfrac{1}{x}$, enter **1/x**"),
-            $._("For $\\dfrac{1}{xy}$, enter **1/(xy)**"),
-            $._("For $\\dfrac{2}{x + 3}$, enter **2/(x + 3)**"),
-            $._("For $x^{y}$, enter **x^y**"),
-            $._("For $x^{2/3}$, enter **x^(2/3)**"),
-            $._("For $\\sqrt{x}$, enter **sqrt(x)**"),
-            $._("For $\\pi$, enter **pi**"),
-            $._("For $\\sin \\theta$, enter **sin(theta)**"),
-            $._("For $\\le$ or $\\ge$, enter **<=** or **>=**"),
-            $._("For $\\neq$, enter **=/=**")
-        ];
-    },
-
-    statics: {
-        displayMode: "block"
-    }
-});
 
 var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
     mixins: [Changeable, JsonifyProps],
@@ -14084,16 +13958,19 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
         form: React.PropTypes.bool,
         simplify: React.PropTypes.bool,
         times: React.PropTypes.bool,
-        functions: React.PropTypes.arrayOf(React.PropTypes.string)
+        functions: React.PropTypes.arrayOf(React.PropTypes.string),
+        buttonSets: TexButtons.buttonSetsType,
+        easybuttons: React.PropTypes.bool
     },
 
     getDefaultProps: function() {
         return {
             value: "",
-            form: false,
+            form: true,
             simplify: false,
-            times: false,
-            functions: ["f", "g", "h"]
+            times: true,
+            functions: ["f", "g", "h"],
+            easybuttons: true
         };
     },
 
@@ -14101,15 +13978,25 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
         var value = this.props.value;
 
         return {
-            // Is the format of `value` TeX or plain text?
-            // TODO(alex): Remove after backfilling everything to TeX
-            isTex: value === "" ||                  // default to TeX if new;
-                _.indexOf(value, "\\") !== -1 ||    // only TeX has backslashes
-                _.indexOf(value, "{") !== -1        // and curly braces
+            // In Junyi, all expressions are new expression widget, not oldExpression widget.
+            // So isTeX default is true.
+            isTex: true
         };
     },
 
     render: function() {
+        // for editing old questions, make buttonSets by easybuttons
+        if (!this.props.buttonSets)
+        {
+            if(!this.props.easybuttons) {
+                this.props.buttonSets = ["basic", "relations", "trig", "prealgebra"];
+            }
+            else {
+                this.props.buttonSets = ["basic"];
+            }
+            this.props.onChange;
+        }
+
         var simplifyWarning = null;
         var shouldTryToParse = this.props.simplify && this.props.value !== "";
         if (shouldTryToParse) {
@@ -14130,32 +14017,73 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
             times: this.props.times,
             functions: this.props.functions,
             onChange: function(newProps)  {return this.change(newProps);}.bind(this),
-            buttonsVisible: "never"
+            buttonsVisible: "never",
+            buttonSets: this.props.buttonSets,
         };
 
         var expression = this.state.isTex ? Expression : OldExpression;
+
+        // checkboxes to choose which sets of input buttons are shown
+        var buttonSetChoices = _(TexButtons.buttonSets).map(function(set, name)  {
+            // The first one gets special cased to always be checked, disabled,
+            // and float left.
+            var isFirst = name === "basic";
+            var checked = _.contains(this.props.buttonSets, name) || isFirst;
+            var className = isFirst ?
+                "button-set-label-float" :
+                "button-set-label";
+
+            var chineseName = "";
+            switch (name){
+                case "basic":
+                    chineseName = "基本運算";
+                    break;
+                case "relations":
+                    chineseName = "不等式";
+                    break;
+                case "trig":
+                    chineseName = "三角函數";
+                    break;
+                case "prealgebra":
+                    chineseName = "初階代數";
+                    break;
+                default:
+                    chineseName = "其他";
+            };
+
+            return React.DOM.div(null,  
+             React.DOM.label( {className:className, key:name}, 
+                React.DOM.input( {type:"checkbox",
+                       checked:checked,
+                       disabled:isFirst,
+                       onChange:function()  {return this.handleButtonSet(name);}.bind(this)} ),
+                chineseName
+            )
+            );
+        }.bind(this));
 
         // TODO(joel) - move buttons outside of the label so they don't weirdly
         // focus
         return React.DOM.div(null, 
             React.DOM.div(null, React.DOM.label(null, 
-                "Correct answer:",' ',
+                "正確答案:",' ',
                 expression(expressionProps)
             )),
             this.state.isTex && TexButtons(
                 {className:"math-input-buttons",
                 convertDotToTimes:this.props.times,
-                onInsert:this.handleTexInsert} ),
+                onInsert:this.handleTexInsert,
+                sets:this.props.buttonSets} ),
 
             React.DOM.div(null, 
                 PropCheckBox(
                     {form:this.props.form,
                     onChange:this.props.onChange,
                     labelAlignment:"right",
-                    label:"Answer expression must have the same form."} ),
+                    label:"答案一定要與格式相符。"} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "The student's answer must be in the same form."+' '+
-                    "Commutativity and excess negative signs are ignored.")
+                    React.DOM.p(null, "學生必須輸入相同的算式。"+' '+
+                    "但容許交換律與負號，例如：1+3，可接受3+1或1-(-3)，但不能接受4或2+2。")
                 )
             ),
 
@@ -14164,13 +14092,12 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
                     {simplify:this.props.simplify,
                     onChange:this.props.onChange,
                     labelAlignment:"right",
-                    label:"Answer expression must be fully expanded and"+' '+
-                        "simplified."} ),
+                    label:"答案一定要化簡、展開。"} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "The student's answer must be fully expanded and"+' '+
-                    "simplified. Answering this equation (x^2+2x+1) with this"+' '+
+                    React.DOM.p(null, "答案一定要化簡或展開，例如方程式 (x^2+2x+1) ，如果輸入"+' '+
+                    "(x+1)^2 就會算不對，並且提示學生："+' '+
                     "factored equation (x+1)^2 will render this response"+' '+
-                    "\"Your answer is not fully expanded and simplified.\"")
+                    "\"你的答案還沒化簡或展開\"。")
                 )
             ),
 
@@ -14181,26 +14108,26 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
                     {times:this.props.times,
                     onChange:this.props.onChange,
                     labelAlignment:"right",
-                    label:"Use × for rendering multiplication instead of a"+' '+
-                        "center dot."} ),
+                    label:"用 × 表示乘號。"} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "For pre-algebra problems this option displays"+' '+
-                    "multiplication as \\times instead of \\cdot in both the"+' '+
-                    "rendered output and the acceptable formats examples.")
+                    React.DOM.p(null, "算術問題使用 × 表示乘法，代數問題用・表示乘法。")
                 )
             ),
 
             React.DOM.div(null, 
+                React.DOM.div(null, "運算符號選擇:"),
+                buttonSetChoices
+            ),
+
+            React.DOM.div(null, 
                 React.DOM.label(null, 
-                "Function variables: ",
+                "函數名稱: ",
                 React.DOM.input( {type:"text",
                     defaultValue:this.props.functions.join(" "),
                     onChange:this.handleFunctions} )
                 ),
                 InfoTip(null, React.DOM.p(null, 
-                    "Single-letter variables listed here will be"+' '+
-                    "interpreted as functions. This let us know that f(x) means"+' '+
-                    "\"f of x\" and not \"f times x\"."
+                    "列在此處的變數為函數名稱，當我們使用 f(x)，會把它解讀成函數，而不是解釋成 f 乘以 x 。"
                 ))
             )
 
@@ -14209,6 +14136,25 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
 
     handleTexInsert: function(str) {
         this.refs.expression.insert(str);
+    },
+
+    // called when the selected buttonset changes
+    handleButtonSet: function(changingName) {
+        var buttonSetNames = _(TexButtons.buttonSets).keys();
+
+        // Filter to preserve order - using .union and .difference would always
+        // move the last added button set to the end.
+        // Because filter by buttonSetNames, the order can be keep
+        var buttonSets = _(buttonSetNames).filter(function(set)  {
+            // if set in original buttonSets & set is changingName => false
+            // if set in original buttonSets & set is not changingName => true
+            // if set not in original buttonSets & set is changingName => true
+            // if set not in original buttonSets & set is not changingName => false
+            return _(this.props.buttonSets).contains(set) !==
+                   (set === changingName);
+        }.bind(this));
+
+        this.props.onChange({ buttonSets:buttonSets });
     },
 
     handleFunctions: function(e) {
@@ -14225,19 +14171,19 @@ var ExpressionEditor = React.createClass({displayName: 'ExpressionEditor',
 
 module.exports = {
     name: "expression",
-    displayName: "Expression / Equation",
+    displayName: "Expression/數學式",
     getWidget: function(enabledFeatures)  {
         // Allow toggling between the two versions of the widget
         return enabledFeatures.useMathQuill ? Expression : OldExpression;
     },
     editor: ExpressionEditor,
     transform: function(editorProps)  {
-        return _.pick(editorProps, "times", "functions");
+        return _.pick(editorProps, "times", "functions", "buttonSets", "easybuttons");
     },
-    hidden: true
+    hidden: false
 };
 
-},{"../components/input-with-examples.jsx":126,"../components/math-input.jsx":127,"../components/prop-check-box.jsx":130,"../components/tex-buttons.jsx":133,"../enabled-features.jsx":144,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../perseus-api.jsx":162,"../tex.jsx":167,"react":115,"react-components/info-tip":5,"react-components/tooltip":114}],177:[function(require,module,exports){
+},{"../components/input-with-examples.jsx":58,"../components/math-input.jsx":59,"../components/prop-check-box.jsx":62,"../components/tex-buttons.jsx":65,"../enabled-features.jsx":76,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../perseus-api.jsx":94,"../tex.jsx":99,"../util.js":100,"react":45,"react-components/info-tip":39,"react-components/tooltip":44}],109:[function(require,module,exports){
 /** @jsx React.DOM */
 
 /**
@@ -14270,9 +14216,10 @@ var Iframe = React.createClass({displayName: 'Iframe',
     getDefaultProps: function() {
         return {
             // options: incomplete, incorrect, correct
-            status: "incomplete",
+            status: "correct",
             // optional message
-            message: null
+            message: null,
+            allowFullScreen: true
         };
     },
 
@@ -14309,9 +14256,8 @@ var Iframe = React.createClass({displayName: 'Iframe',
         var url = this.props.url;
 
         // If the URL doesnt start with http, it must be a program ID
-        if (url.length && url.indexOf("http") !== 0) {
-            url = "http://khanacademy.org/cs/program/" + url +
-                    "/embedded?buttons=no&embed=yes&editor=no&author=no";
+        if (url && url.length && url.indexOf("http") !== 0) {
+            url = "https://www.youtube.com/embed/" + url;
             // Origin is used by output.js in deciding to send messages
             url = updateQueryString(url, "origin", window.location.origin);
         }
@@ -14333,7 +14279,8 @@ var Iframe = React.createClass({displayName: 'Iframe',
         //  creator "went wild".
         // http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
         return React.DOM.iframe( {sandbox:"allow-same-origin allow-scripts",
-                       style:style, src:url} );
+                       style:style, src:url, 
+                       allowFullScreen:this.props.allowFullScreen});
     },
 
     simpleValidate: function(rubric) {
@@ -14398,11 +14345,11 @@ var PairEditor = React.createClass({displayName: 'PairEditor',
 
     render: function() {
         return React.DOM.fieldset(null, 
-                React.DOM.label(null, "Name:", 
+                React.DOM.label(null, "名稱:", 
                     BlurInput( {value:this.props.name,
                            onChange:this.change("name")} )
                 ),
-                React.DOM.label(null, "Value:",
+                React.DOM.label(null, "設定值:",
                     BlurInput( {value:this.props.value,
                            onChange:this.change("value")} )
                 )
@@ -14458,34 +14405,17 @@ var IframeEditor = React.createClass({displayName: 'IframeEditor',
         return {
             url: "",
             settings: [{name: "", value: ""}],
-            width: 400,
-            height: 400
+            width: 560,
+            height: 320
         };
     },
 
     render: function() {
         return React.DOM.div(null, 
-            React.DOM.label(null, "Url or Program ID:",
+            React.DOM.label(null, "網址 Url:",
                 BlurInput( {name:"url",
                            value:this.props.url,
                            onChange:this.change("url")} )
-            ),
-            React.DOM.br(null),
-            React.DOM.label(null, "Settings:",
-                PairsEditor( {name:"settings",
-                           pairs:this.props.settings,
-                           onChange:this.handleSettingsChange} )
-            ),
-            React.DOM.br(null),
-            React.DOM.label(null, "Width:", 
-                BlurInput( {name:"width",
-                           value:this.props.width,
-                           onChange:this.change("width")} )
-            ),
-            React.DOM.label(null, "Height:", 
-                BlurInput( {name:"height",
-                           value:this.props.height,
-                           onChange:this.change("height")} )
             )
         );
     },
@@ -14498,14 +14428,14 @@ var IframeEditor = React.createClass({displayName: 'IframeEditor',
 
 module.exports = {
     name: "iframe",
-    displayName: "Iframe",
+    displayName: "Iframe/外掛套件",
     widget: Iframe,
     // Let's not expose it to all content creators yet
-    hidden: true,
+    hidden: false,
     editor: IframeEditor
 };
 
-},{"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../util.js":168,"react":115,"react-components/blur-input":2}],178:[function(require,module,exports){
+},{"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../util.js":100,"react":45,"react-components/blur-input":36}],110:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var BlurInput    = require("react-components/blur-input");
@@ -14524,6 +14454,7 @@ var defaultBackgroundImage = {
     width: 0,
     height: 0
 };
+var maxImageSize = 480;
 
 /**
  * Alignment option for captions, relative to specified coordinates.
@@ -14569,7 +14500,8 @@ var ImageWidget = React.createClass({displayName: 'ImageWidget',
                 coordinates: React.PropTypes.arrayOf(React.PropTypes.number),
                 alignment: React.PropTypes.string
             })
-        )
+        ),
+        allowScratchpad: React.PropTypes.bool
     },
 
     getDefaultProps: function() {
@@ -14577,7 +14509,8 @@ var ImageWidget = React.createClass({displayName: 'ImageWidget',
             range: [defaultRange, defaultRange],
             box: [defaultBoxSize, defaultBoxSize],
             backgroundImage: defaultBackgroundImage,
-            labels: []
+            labels: [],
+            allowScratchpad: true
         };
     },
 
@@ -14606,7 +14539,8 @@ var ImageWidget = React.createClass({displayName: 'ImageWidget',
                 box:this.props.box,
                 range:this.props.range,
                 options:_.pick(this.props, "box", "range", "labels"),
-                setup:this.setupGraphie}
+                setup:this.setupGraphie,
+                allowScratchpad:this.props.allowScratchpad}
             )
         );
     },
@@ -14660,19 +14594,19 @@ var ImageEditor = React.createClass({displayName: 'ImageEditor',
 
     render: function() {
         var imageSettings = React.DOM.div( {className:"image-settings"}, 
-            React.DOM.div(null, "Url:",' ',
+            React.DOM.div(null, "圖片網址:",' ',
                 BlurInput( {value:this.props.backgroundImage.url,
                            onChange:this.onUrlChange} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "填入圖片的網址")
+                    React.DOM.p(null, "填入圖片的網址。例如，先上傳至 http://imgur.com ，貼上圖片網址 (Direct link)。")
                 )
             ),
             React.DOM.label(null, 
                 React.DOM.input( {type:"checkbox",
                         checked:this.props.useBoxSize,
-                        onChange:this.toggleUseBoxSize} ),"手動調整寬度"
+                        onChange:this.toggleUseBoxSize} ),"手動調整寬度，寬度上限480"
             ),
-            React.DOM.div(null, "Width:",' ',
+            React.DOM.div(null, "寬度:",' ',
                 BlurInput( {value:parseInt(this.props.box[0]),
                            onChange:this.onWidthChange} ),
                 InfoTip(null, 
@@ -14772,7 +14706,7 @@ var ImageEditor = React.createClass({displayName: 'ImageEditor',
         var image = _.clone(this.props.backgroundImage);
         if (this.props.useBoxSize) {
             var w_h_ratio = image.height / image.width;
-            image.width = parseInt(newAlignment);
+            image.width = parseInt(newAlignment) > maxImageSize ? maxImageSize:parseInt(newAlignment);
             image.height = Math.round(image.width * w_h_ratio);
         }
         var box = [image.width, image.height];
@@ -14830,13 +14764,13 @@ var ImageEditor = React.createClass({displayName: 'ImageEditor',
 
 module.exports = {
     name: "image",
-    displayName: "Image",
+    displayName: "Image/圖片",
     widget: ImageWidget,
     editor: ImageEditor
 };
 
 
-},{"../components/graphie.jsx":125,"../components/range-input.jsx":131,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"react-components/blur-input":2,"react-components/info-tip":5}],179:[function(require,module,exports){
+},{"../components/graphie.jsx":57,"../components/range-input.jsx":63,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"react-components/blur-input":36,"react-components/info-tip":39}],111:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React             = require('react');
@@ -14854,35 +14788,35 @@ var toNumericString = KhanUtil.toNumericString;
 
 var answerTypes = {
     number: {
-        name: "Numbers",
+        name: "數字",
         forms: "integer, decimal, proper, improper, mixed"
     },
     decimal: {
-        name: "Decimals",
+        name: "小數",
         forms: "decimal"
     },
     integer: {
-        name: "Integers",
+        name: "整數",
         forms: "integer"
     },
     rational: {
-        name: "Fractions and mixed numbers",
+        name: "分數與帶分數",
         forms: "integer, proper, improper, mixed"
     },
     improper: {
-        name: "Improper numbers (no mixed)",
+        name: "假分數 (不接受帶分數)",
         forms: "integer, proper, improper"
     },
     mixed: {
-        name: "Mixed numbers (no improper)",
+        name: "帶分數 (不接受假分數)",
         forms: "integer, proper, mixed"
     },
     percent: {
-        name: "Numbers or percents",
+        name: "數字或百分數",
         forms: "integer, decimal, proper, improper, mixed, percent"
     },
     pi: {
-        name: "Numbers with pi", forms: "pi"
+        name: "有 \u03C0 的數", forms: "pi"
     }
 };
 
@@ -14890,29 +14824,29 @@ var formExamples = {
     "integer": function(options) { return $._("an integer, like $6$"); },
     "proper": function(options) {
         if (options.simplify === "optional") {
-            return $._("a *proper* fraction, like $1/2$ or $6/10$");
+            return $._("真分數, 例 $1/2$ or $6/10$");
         } else {
-            return $._("a *simplified proper* fraction, like $3/5$");
+            return $._("最簡真分數, 例 $3/5$");
         }
     },
     "improper": function(options) {
         if (options.simplify === "optional") {
-            return $._("an *improper* fraction, like $10/7$ or $14/8$");
+            return $._("假分數, 例 $10/7$ or $14/8$");
         } else {
-            return $._("a *simplified improper* fraction, like $7/4$");
+            return $._("最簡假分數, 例 $7/4$");
         }
     },
     "mixed": function(options) {
-        return $._("a mixed number, like $1\\ 3/4$");
+        return $._("帶分數, 例 $1\\ 3/4$");
     },
     "decimal": function(options) {
-        return $._("an *exact* decimal, like $0.75$");
+        return $._("精確的小數, 例 $0.75$");
     },
     "percent": function(options) {
         return $._("a percent, like $12.34\\%$");
     },
     "pi": function(options) {
-        return $._("a multiple of pi, like $12\\ \\text{pi}$ or " +
+        return $._("pi 的倍數, 例 $12\\ \\text{pi}$ or " +
                 "$2/3\\ \\text{pi}$");
     }
 };
@@ -14994,12 +14928,19 @@ var InputNumber = React.createClass({displayName: 'InputNumber',
     },
 
     handleChange: function(newValue) {
-        this.props.onChange({ currentValue: newValue });
+        this.props.onChange({ currentValue: Util.asc(newValue) });
     },
 
     focus: function() {
         this.refs.input.focus();
         return true;
+    },
+
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = {currentValue: ""};
+        }
+        this.props.onChange(answerData);
     },
 
     toJSON: function(skipValidation) {
@@ -15095,14 +15036,14 @@ var InputNumberEditor = React.createClass({displayName: 'InputNumberEditor',
 
         return React.DOM.div(null, 
             React.DOM.div(null, React.DOM.label(null, 
-                ' ',"Correct answer:",' ',
+                ' ',"正確答案:",' ',
                 BlurInput( {value:"" + this.props.value,
                            onChange:this.handleAnswerChange,
                            ref:"input"} )
             )),
 
             React.DOM.div(null, 
-            ' ',"Answer type:",' ',
+            ' ',"答案類型:",' ',
             React.DOM.select(
                 {value:this.props.answerType,
                 onChange:function(e)  {
@@ -15111,27 +15052,23 @@ var InputNumberEditor = React.createClass({displayName: 'InputNumberEditor',
                 answerTypeOptions
             ),
             InfoTip(null, 
-                React.DOM.p(null, "Use the default \"Numbers\" unless the answer must be in a"+' '+
-                "specific form (e.g., question is about converting decimals to"+' '+
-                "fractions).")
+                React.DOM.p(null, "預設使用「數字」，除非答案需要是一個特定的格式。(例如：將小數轉換成分數的問題)")
             )
             ),
 
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Width",' ',
+                    ' ',"寬度",' ',
                     React.DOM.select( {value:this.props.size,
                             onChange:function(e)  {
                                 this.props.onChange({size: e.target.value});
                             }.bind(this)}, 
-                        React.DOM.option( {value:"normal"}, "Normal (80px)"),
-                        React.DOM.option( {value:"small"}, "Small (40px)")
+                        React.DOM.option( {value:"normal"}, "一般 (80px)"),
+                        React.DOM.option( {value:"small"}, "較小 (40px)")
                     )
                 ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use size \"Normal\" for all text boxes, unless there are"+' '+
-                    "multiple text boxes in one line and the answer area is too"+' '+
-                    "narrow to fit them.")
+                    React.DOM.p(null, "預設使用一般大小，除非需要很多個答案格在同一行，會出現放不下的情況。")
                 )
             )
         );
@@ -15161,7 +15098,7 @@ module.exports = {
     transform: propTransform
 };
 
-},{"../components/input-with-examples.jsx":126,"../enabled-features.jsx":144,"../perseus-api.jsx":162,"../renderer.jsx":165,"../tex.jsx":167,"../util.js":168,"react":115,"react-components/blur-input":2,"react-components/info-tip":5}],180:[function(require,module,exports){
+},{"../components/input-with-examples.jsx":58,"../enabled-features.jsx":76,"../perseus-api.jsx":94,"../renderer.jsx":97,"../tex.jsx":99,"../util.js":100,"react":45,"react-components/blur-input":36,"react-components/info-tip":39}],112:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React         = require('react');
@@ -15462,12 +15399,10 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
     },
 
     getDefaultProps: function() {
-        var range = this.props.range || [[-10, 10], [-10, 10]];
-        var step = this.props.step || [1, 1];
-        var gridStep = this.props.gridStep ||
-                   Util.getGridStep(range, step, defaultBoxSize);
-        var snapStep = this.props.snapStep ||
-                   Util.snapStepFromGridStep(gridStep);
+        var range = [[-10, 10], [-10, 10]];
+        var step = [1, 1];
+        var gridStep = Util.getGridStep(range, step, defaultBoxSize);
+        var snapStep = Util.snapStepFromGridStep(gridStep);
         return {
             labels: ["x", "y"],
             range: range,
@@ -15532,16 +15467,16 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                             graph: {type: type}
                         });
                     }.bind(this)}, 
-                React.DOM.option( {value:"linear"}, "Linear function"),
-                React.DOM.option( {value:"quadratic"}, "Quadratic function"),
-                React.DOM.option( {value:"sinusoid"}, "Sinusoid function"),
-                React.DOM.option( {value:"circle"}, "Circle"),
-                React.DOM.option( {value:"point"}, "Point(s)"),
-                React.DOM.option( {value:"linear-system"}, "Linear System"),
-                React.DOM.option( {value:"polygon"}, "Polygon"),
-                React.DOM.option( {value:"segment"}, "Line Segment(s)"),
-                React.DOM.option( {value:"ray"}, "Ray"),
-                React.DOM.option( {value:"angle"}, "Angle")
+                React.DOM.option( {value:"linear"}, "線性函數"),
+                React.DOM.option( {value:"quadratic"}, "二次函數"),
+                React.DOM.option( {value:"sinusoid"}, "正餘弦函數"),
+                React.DOM.option( {value:"circle"}, "圓形"),
+                React.DOM.option( {value:"point"}, "點"),
+                React.DOM.option( {value:"linear-system"}, "聯立方程組"),
+                React.DOM.option( {value:"polygon"}, "多邊形"),
+                React.DOM.option( {value:"segment"}, "線段"),
+                React.DOM.option( {value:"ray"}, "射線"),
+                React.DOM.option( {value:"angle"}, "角度")
             );
 
             if (this.props.graph.type === "point") {
@@ -15561,10 +15496,10 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                         }.bind(this)}, 
                     _.map(_.range(1, 7), function(n) {
                         return React.DOM.option( {value:n}, 
-                            n, " point",n > 1 && "s"
+                            n, " 點"
                         );
                     }),
-                    React.DOM.option( {value:UNLIMITED}, "unlimited")
+                    React.DOM.option( {value:UNLIMITED}, "無限制")
                 );
             } else if (this.props.graph.type === "polygon") {
                 extraOptions = React.DOM.div(null, 
@@ -15585,13 +15520,13 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                                 this.props.onChange({graph: graph});
                             }.bind(this)}, 
                             _.map(_.range(3, 13), function(n) {
-                                return React.DOM.option( {value:n}, n, " sides");
+                                return React.DOM.option( {value:n}, n, " 邊");
                             }),
-                            React.DOM.option( {value:UNLIMITED}, "unlimited sides")
+                            React.DOM.option( {value:UNLIMITED}, "無限制")
                         )
                     ),
                     React.DOM.div(null, 
-                        React.DOM.label(null,  " Snap to",' ',
+                        React.DOM.label(null,  " 對齊",' ',
                             React.DOM.select(
                                 {key:"polygon-snap",
                                 value:this.props.graph.snapTo,
@@ -15604,45 +15539,40 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                                         });
                                     this.props.onChange({graph: graph});
                                 }.bind(this)}, 
-                                React.DOM.option( {value:"grid"}, "grid"),
+                                React.DOM.option( {value:"grid"}, "網格"),
                                 (this.props.graph.numSides !== UNLIMITED) && [
-                                    React.DOM.option( {value:"angles"}, 
-                                        ' ',"interior angles",' '
+                                    React.DOM.option( {value:"interior angles"}, 
+                                        ' ',"內角",' '
                                     ),
-                                    React.DOM.option( {value:"sides"}, 
-                                        ' ',"side measures",' '
+                                    React.DOM.option( {value:"side measures"}, 
+                                        ' ',"邊長",' '
                                     )
                                 ]
                             )
                         ),
                         InfoTip(null, 
-                            React.DOM.p(null, "These options affect the movement of the vertex"+' '+
-                            "points. The grid option will guide the points to"+' '+
-                            "the nearest half step along the grid."),
-
-                            React.DOM.p(null, "The interior angle and side measure options"+' '+
-                            "guide the points to the nearest whole angle or"+' '+
-                            "side"), " measure respectively.",' '
+                            React.DOM.p(null, "此選項是用來決定答案的符合情況，\"對齊網格\"為頂點位置需符合答案要求，"+' '+
+                                "\"對齊內角\"為內角需符合答案要求，\"對齊邊長\"為各邊需符合答案要求。")
                         )
                     ),
                     React.DOM.div(null, 
-                        React.DOM.label(null, "Show angle measures:",' ',
+                        React.DOM.label(null, "顯示角度度數:",' ',
                             React.DOM.input( {type:"checkbox",
                                 checked:this.props.graph.showAngles,
                                 onChange:this.toggleShowAngles} )
                         ),
                         InfoTip(null, 
-                            React.DOM.p(null, "Displays the interior angle measures.")
+                            React.DOM.p(null, "顯示出各內角的角度")
                         )
                     ),
                     React.DOM.div(null, 
-                        React.DOM.label(null, "Show side measures:",' ',
+                        React.DOM.label(null, "顯示邊長長度:",' ',
                             React.DOM.input( {type:"checkbox",
                                 checked:this.props.graph.showSides,
                                 onChange:this.toggleShowSides} )
                         ),
                         InfoTip(null, 
-                            React.DOM.p(null, "Displays the side lengths.")
+                            React.DOM.p(null, "顯示出各邊的長度")
                         )
                     )
                 );
@@ -15662,7 +15592,7 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                         }.bind(this)}, 
                     _.map(_.range(1, 7), function(n) {
                         return React.DOM.option( {value:n}, 
-                            n, " segment",n > 1 && "s"
+                            n, " 線段"
                         );
                     })
                 );
@@ -15673,14 +15603,14 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                 );
                 extraOptions = React.DOM.div(null, 
                     React.DOM.div(null, 
-                        React.DOM.label(null, "Show angle measure:",' ',
+                        React.DOM.label(null, "顯示角度值:",' ',
                             React.DOM.input( {type:"checkbox",
                                 checked:this.props.graph.showAngles,
                                 onChange:this.toggleShowAngles} )
                         )
                     ),
                     React.DOM.div(null, 
-                        React.DOM.label(null, "Allow reflex angles:",' ',
+                        React.DOM.label(null, "允許反角:",' ',
                             React.DOM.input( {type:"checkbox",
                                 checked:allowReflexAngles,
                                 onChange:function(newVal)  {
@@ -15695,16 +15625,15 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                         ),
                         InfoTip(null, 
                             React.DOM.p(null, 
-                                "Reflex angles are angles with a measure"+' '+
-                                "greater than 180 degrees."
+                                "反角是指大於 180 度的角度。"
                             ),
                             React.DOM.p(null, 
-                                "By default, these should remain enabled."
+                                "(預設為允許)"
                             )
                         )
                     ),
                     React.DOM.div(null, 
-                        React.DOM.label(null, "Snap to increments of",' ',
+                        React.DOM.label(null, "符合",' ',
                             NumberInput(
                                 {key:"degree-snap",
                                 placeholder:1,
@@ -15717,12 +15646,12 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                                         })
                                     });
                                 }.bind(this)} ),
-                            ' ',"degrees",' '
+                            ' ',"度",' '
                         )
                     ),
                     React.DOM.div(null, 
                         React.DOM.label(null, 
-                            ' ',"With an offset of",' ',
+                            ' ',"偏移",' ',
                             NumberInput(
                                 {key:"angle-offset",
                                 placeholder:0,
@@ -15735,7 +15664,7 @@ var InteractiveGraph = React.createClass({displayName: 'InteractiveGraph',
                                         })
                                     });
                                 }.bind(this)} ),
-                            ' ',"degrees",' '
+                            ' ',"度",' '
                         )
                     )
                 );
@@ -17475,12 +17404,10 @@ var InteractiveGraphEditor = React.createClass({displayName: 'InteractiveGraphEd
     className: "perseus-widget-interactive-graph",
 
     getDefaultProps: function() {
-        var range = this.props.range || [[-10, 10], [-10, 10]];
-        var step = this.props.step || [1, 1];
-        var gridStep = this.props.gridStep ||
-                   Util.getGridStep(range, step, defaultEditorBoxSize);
-        var snapStep = this.props.snapStep ||
-                   Util.snapStepFromGridStep(gridStep);
+        var range = [[-10, 10], [-10, 10]];
+        var step = [1, 1];
+        var gridStep = Util.getGridStep(range, step, defaultEditorBoxSize);
+        var snapStep = Util.snapStepFromGridStep(gridStep);
         return {
             box: [defaultEditorBoxSize, defaultEditorBoxSize],
             labels: ["x", "y"],
@@ -17545,11 +17472,9 @@ var InteractiveGraphEditor = React.createClass({displayName: 'InteractiveGraphEd
         }
 
         return React.DOM.div( {className:"perseus-widget-interactive-graph"}, 
-            React.DOM.div(null, "Correct answer",' ',
+            React.DOM.div(null, "正確答案",' ',
                 InfoTip(null, 
-                    React.DOM.p(null, "Graph the correct answer in the graph below and ensure"+' '+
-                    "the equation or point coordinates displayed represent the"+' '+
-                    "correct answer.")
+                    React.DOM.p(null, "將正確答案於下圖中繪製出來，請注意所有的函數圖或資料點需表示出正確的答案。")
                 ),
                 ' ',": ", equationString),
 
@@ -17574,43 +17499,34 @@ var InteractiveGraphEditor = React.createClass({displayName: 'InteractiveGraphEd
             this.props.correct.type === "polygon" &&
             React.DOM.div( {className:"type-settings"}, 
                 React.DOM.label(null, 
-                    ' ',"Student answer must",' ',
+                    ' ',"學生的答案必須要",' ',
                     React.DOM.select(
                             {value:this.props.correct.match,
                             onChange:this.changeMatchType}, 
-                        React.DOM.option( {value:"exact"}, "match exactly"),
-                        React.DOM.option( {value:"congruent"}, "be congruent"),
-                        React.DOM.option( {value:"approx"}, 
-                            "be approximately congruent"),
-                        React.DOM.option( {value:"similar"}, "be similar")
+                        React.DOM.option( {value:"exact"}, "完全符合"),
+                        React.DOM.option( {value:"congruent"}, "全等"),
+                        React.DOM.option( {value:"approx"}, "大致上全等"),
+                        React.DOM.option( {value:"similar"}, "相似")
                     )
                 ),
                 InfoTip(null, 
                     React.DOM.ul(null, 
                         React.DOM.li(null, 
-                            React.DOM.p(null, React.DOM.b(null, "Match Exactly:"), " Match exactly in size,"+' '+
-                            "orientation, and location on the grid even if it is"+' '+
-                            "not shown in the background.")
+                            React.DOM.p(null, React.DOM.b(null, "完全符合:"), " 圖形於網格上的大小、方向、位置皆需完全符合答案。")
                         ),
                         React.DOM.li(null, 
-                            React.DOM.p(null, React.DOM.b(null, "Be Congruent:"), " Be congruent in size and"+' '+
-                            "shape, but can be located anywhere on the grid.")
+                            React.DOM.p(null, React.DOM.b(null, "全等:"), " 圖形的大小和形狀需與答案符合，但圖形於網格上的位置並無限制。")
                         ),
                         React.DOM.li(null, 
                             React.DOM.p(null, 
-                                React.DOM.b(null, "Be Approximately Congruent:"), " Be exactly"+' '+
-                                "similar, and congruent in size and shape to"+' '+
-                                "within 0.1 units, but can be located anywhere"+' '+
-                                "on the grid. ", React.DOM.em(null, "Use this with snapping to"+' '+
-                                "angle measure.")
+                                React.DOM.b(null, "大致上全等:"), " 圖形需與答案非常相似，圖形的大小和形狀與答案可誤差於 0.1 個"+' '+
+                                "網格單位，且圖形於網格上的位置並無限制。",
+                                React.DOM.em(null, "(可使用此答案於對齊角度的選項)")
                             )
                         ),
                         React.DOM.li(null, 
-                            React.DOM.p(null, React.DOM.b(null, "Be Similar:"), " Be similar with matching"+' '+
-                            "interior angles, and side measures that are"+' '+
-                            "matching or a multiple of the correct side"+' '+
-                            "measures. The figure can be located anywhere on the"+' '+
-                            "grid.")
+                            React.DOM.p(null, React.DOM.b(null, "相似:"), " 圖形的內角、邊長與答案大致相似，或是圖形大部份邊的性質符合答案，且"+' '+
+                            "圖形於網格上的位置並無限制。")
                         )
                     )
                 )
@@ -17619,19 +17535,17 @@ var InteractiveGraphEditor = React.createClass({displayName: 'InteractiveGraphEd
             React.DOM.div( {className:"type-settings"}, 
                 React.DOM.div(null, 
                     React.DOM.label(null, 
-                        ' ',"Student answer must",' ',
+                        ' ',"學生的答案必須要",' ',
                         React.DOM.select(
                                 {value:this.props.correct.match,
                                 onChange:this.changeMatchType}, 
-                            React.DOM.option( {value:"exact"}, "match exactly"),
-                            React.DOM.option( {value:"congruent"}, "be congruent")
+                            React.DOM.option( {value:"exact"}, "完全符合"),
+                            React.DOM.option( {value:"congruent"}, "全等")
                         )
                     ),
                     InfoTip(null, 
-                        React.DOM.p(null, "Congruency requires only that the angle measures are"+' '+
-                        "the same. An exact match implies congruency, but also"+' '+
-                        "requires that the angles have the same orientation and"+' '+
-                        "that the vertices are in the same position.")
+                        React.DOM.p(null, "\"完全符合\"是指圖形於網格上的方向、位置皆需完全符合答案；"+' '+
+                        "\"全等\"僅要求角度部份相同即可。")
                     )
                 )
             ),
@@ -17676,13 +17590,13 @@ var InteractiveGraphEditor = React.createClass({displayName: 'InteractiveGraphEd
 
 module.exports = {
     name: "interactive-graph",
-    displayName: "Interactive graph",
+    displayName: "Interactive graph/互動式座標圖",
     widget: InteractiveGraph,
     editor: InteractiveGraphEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/graph-settings.jsx":121,"../components/graph.jsx":122,"../components/number-input.jsx":129,"../interactive2.js":148,"../util.js":168,"react":115,"react-components/info-tip":5}],181:[function(require,module,exports){
+},{"../components/graph-settings.jsx":53,"../components/graph.jsx":54,"../components/number-input.jsx":61,"../interactive2.js":80,"../util.js":100,"react":45,"react-components/info-tip":39}],113:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var InfoTip      = require("react-components/info-tip");
@@ -17750,13 +17664,13 @@ var InteractiveNumberLine = React.createClass({displayName: 'InteractiveNumberLi
         var inequalityControls;
         if (this.props.isInequality) {
             inequalityControls = React.DOM.div(null, 
-                React.DOM.input( {type:"button", value:"Switch direction",
+                React.DOM.input( {type:"button", value:"換方向",
                     onClick:this.handleReverse} ),
                 React.DOM.input( {type:"button",
                     value:
                         this.props.rel === "le" || this.props.rel === "ge" ?
-                            "Make circle open" :
-                            "Make circle filled",
+                            "改為空心圓" :
+                            "改為實心圓",
                         
                     onClick:this.handleToggleStrict} )
             );
@@ -17958,6 +17872,17 @@ var InteractiveNumberLine = React.createClass({displayName: 'InteractiveNumberLi
         }
     },
 
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = this.getDefaultProps();
+        }
+        if (answerData.rel === "eq") {
+            answerData.rel = "ge";
+            answerData.isInequality = false;
+        }
+        this.props.onChange(answerData);
+    },
+
     toJSON: function() {
         return {
             pointX: this.props.pointX,
@@ -18026,25 +17951,24 @@ var InteractiveNumberLineEditor = React.createClass({displayName: 'InteractiveNu
     render: function() {
         return React.DOM.div(null, 
             React.DOM.label(null, 
-                ' ',"min x: ", React.DOM.input( {defaultValue:'' + this.props.range[0],
+                ' ',"最小 x: ", React.DOM.input( {defaultValue:'' + this.props.range[0],
                     onBlur:this.onRangeBlur.bind(this, 0)} )
             ),React.DOM.br(null ),
             React.DOM.label(null, 
-                ' ',"max x: ", React.DOM.input( {defaultValue:'' + this.props.range[1],
+                ' ',"最大 x: ", React.DOM.input( {defaultValue:'' + this.props.range[1],
                     onBlur:this.onRangeBlur.bind(this, 1)} )
             ),
             InfoTip(null, 
-                React.DOM.p(null, "Change \"label styles\" below to display the max and min x in"+' '+
-                "different number formats.")
+                React.DOM.p(null, "利用下方的「標籤格式」來改變最大與最小 x 的標籤顯示格式。")
             ),React.DOM.br(null ),
             React.DOM.span(null, 
-                ' ',"correct:",' ',
+                ' ',"正確答案:",' ',
                 React.DOM.select( {value:this.props.correctRel,
                         onChange:this.onChange.bind(this, "correctRel")}, 
-                    React.DOM.optgroup( {label:"Equality"}, 
+                    React.DOM.optgroup( {label:"等式"}, 
                         React.DOM.option( {value:"eq"}, "x =")
                     ),
-                    React.DOM.optgroup( {label:"Inequality"}, 
+                    React.DOM.optgroup( {label:"不等式"}, 
                         React.DOM.option( {value:"lt"}, "x <"),
                         React.DOM.option( {value:"gt"}, "x >"),
                         React.DOM.option( {value:"le"}, "x ≤"),
@@ -18055,34 +17979,32 @@ var InteractiveNumberLineEditor = React.createClass({displayName: 'InteractiveNu
                     onBlur:this.onNumBlur.bind(this, "correctX")} )
             ),React.DOM.br(null ),React.DOM.br(null ),
             React.DOM.label(null, 
-                ' ',"label style:",' ',
+                ' ',"標籤格式:",' ',
                 React.DOM.select( {value:this.props.labelStyle,
                         onChange:this.onChange.bind(this, "labelStyle")}, 
-                    React.DOM.option( {value:"decimal"}, "Decimals"),
-                    React.DOM.option( {value:"improper"}, "Improper fractions"),
-                    React.DOM.option( {value:"mixed"}, "Mixed numbers")
+                    React.DOM.option( {value:"decimal"}, "小數"),
+                    React.DOM.option( {value:"improper"}, "假分數"),
+                    React.DOM.option( {value:"mixed"}, "帶分數")
                 ),
                 PropCheckBox(
-                    {label:"label ticks",
+                    {label:"顯示刻度代表的數字",
                     labelTicks:this.props.labelTicks,
                     onChange:this.props.onChange} )
             ),React.DOM.br(null ),
             React.DOM.label(null, 
-                ' ',"tick step: ", React.DOM.input( {defaultValue:'' + this.props.tickStep,
+                ' ',"每一刻度之間距離: ", React.DOM.input( {defaultValue:'' + this.props.tickStep,
                     onBlur:this.onNumBlur.bind(this, "tickStep")} )
             ),
             InfoTip(null, 
-                React.DOM.p(null, "A tick mark is placed at every number of steps"+' '+
-                "indicated.")
+                React.DOM.p(null, "每一個刻度都會標上刻度線。")
             ),React.DOM.br(null ),
             React.DOM.label(null, 
-                ' ',"snap increments per tick:",' ',
+                ' ',"刻度之間的分割數量:",' ',
                 React.DOM.input( {defaultValue:'' + this.props.snapDivisions,
                     onBlur:this.onNumBlur.bind(this, "snapDivisions")} )
             ),
             InfoTip(null, 
-                React.DOM.p(null, "Ensure the required number of snap increments is provided to"+' '+
-                "answer the question.")
+                React.DOM.p(null, "確保分割數量足夠讓使用者回答問題，即答案會落在某分割的位置。")
             )
         );
     },
@@ -18127,13 +18049,13 @@ var InteractiveNumberLineEditor = React.createClass({displayName: 'InteractiveNu
 
 module.exports = {
     name: "interactive-number-line",
-    displayName: "Number line 2",
-    hidden: true,
+    displayName: "Interactive-number-line/互動式數線",
+    hidden: false,
     widget: InteractiveNumberLine,
     editor: InteractiveNumberLineEditor
 };
 
-},{"../components/prop-check-box.jsx":130,"../util.js":168,"react-components/info-tip":5}],182:[function(require,module,exports){
+},{"../components/prop-check-box.jsx":62,"../util.js":100,"react-components/info-tip":39}],114:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -18340,12 +18262,12 @@ var LightsPuzzle = React.createClass({displayName: 'LightsPuzzle',
                 onChange:this._flipTile} ),
             React.DOM.div( {style:{width: pxWidth}}, 
                 React.DOM.div( {style:MOVE_COUNT_STYLE}, 
-                    "Moves: ", this.props.moveCount
+                    "移動次數: ", this.props.moveCount
                 ),
                 React.DOM.div( {style:RESET_BUTTON_STYLE}, 
                 React.DOM.input(
                     {type:"button",
-                    value:"Reset",
+                    value:"重置",
                     onClick:this._reset,
                     className:"simple-button"} )
                 )
@@ -18456,20 +18378,20 @@ var LightsPuzzleEditor = React.createClass({displayName: 'LightsPuzzleEditor',
     render: function() {
         return React.DOM.div(null, 
             React.DOM.div(null, 
-                "Width:",
+                "寬度:",
                 NumberInput(
                     {value:this._width(),
                     placeholder:5,
                     onChange:this._changeWidth} ),
                 ", ",
-                "Height:",
+                "高度:",
                 NumberInput(
                     {value:this._height(),
                     placeholder:5,
                     onChange:this._changeHeight} )
             ),
             React.DOM.div(null, 
-                "Flip pattern:",
+                "翻轉圖樣:",
                 React.DOM.select(
                         {value:this.props.flipPattern,
                         onChange:this._handlePatternChange}, 
@@ -18479,17 +18401,17 @@ var LightsPuzzleEditor = React.createClass({displayName: 'LightsPuzzleEditor',
                 )
             ),
             React.DOM.div(null, 
-                "Grade incomplete puzzles as wrong:",
+                "將未完成的謎題視為錯誤:",
                 " ",
                 PropCheckBox(
                     {gradeIncompleteAsWrong:this.props.gradeIncompleteAsWrong,
                     onChange:this.props.onChange} ),
                     InfoTip(null, 
-                        "By default, incomplete puzzles are graded as empty."
+                        "預設未完成的謎題會被當成空白來處理。"
                     )
                 ),
             React.DOM.div(null, 
-                "Starting configuration:"
+                "起始圖案設定:"
             ),
             React.DOM.div( {style:{overflowX: "auto"}}, 
                 TileGrid(
@@ -18588,14 +18510,14 @@ var transformProps = function(editorProps) {
 
 module.exports = {
     name: "lights-puzzle",
-    displayName: "Lights Puzzle",
-    hidden: true,
+    displayName: "Lights Puzzle/點燈謎題",
+    hidden: false,
     widget: LightsPuzzle,
     editor: LightsPuzzleEditor,
     transform: transformProps
 };
 
-},{"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"react":115,"react-components/info-tip":5}],183:[function(require,module,exports){
+},{"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"react":45,"react-components/info-tip":39}],115:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -18751,11 +18673,9 @@ var MatcherEditor = React.createClass({displayName: 'MatcherEditor',
     render: function() {
         return React.DOM.div( {className:"perseus-matcher-editor"}, 
             React.DOM.div(null, 
-                ' ',"Correct answer:",' ',
+                ' ',"正確答案:",' ',
                 InfoTip(null, 
-                    React.DOM.p(null, "Enter the correct answers here. The preview on the right"+' '+
-                    "will show the cards in a randomized order, which is how the"+' '+
-                    "student will see them.")
+                    React.DOM.p(null, "在此輸入配對題組的正確答案。當題目顯示時，會隨機排序卡片的順序。")
                 )
             ),
             React.DOM.div( {className:"ui-helper-clearfix"}, 
@@ -18773,9 +18693,9 @@ var MatcherEditor = React.createClass({displayName: 'MatcherEditor',
                     layout:"vertical"} )
             ),
             React.DOM.span(null, 
-                ' ',"Labels:",' ',
+                ' ',"標籤:",' ',
                 InfoTip(null, 
-                    React.DOM.p(null, "These are entirely optional.")
+                    React.DOM.p(null, "此欄位非必填。")
                 )
             ),
             React.DOM.div(null, 
@@ -18788,26 +18708,22 @@ var MatcherEditor = React.createClass({displayName: 'MatcherEditor',
             ),
             React.DOM.div(null, 
                 PropCheckBox(
-                    {label:"Order of the matched pairs matters:",
+                    {label:"第一欄的欄位順序可重新調整:",
                     orderMatters:this.props.orderMatters,
                     onChange:this.props.onChange} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "With this option enabled, only the order provided above"+' '+
-                    "will be treated as correct. This is useful when ordering is"+' '+
-                    "significant, such as in the context of a proof."),
-                    React.DOM.p(null, "If disabled, pairwise matching is sufficient. To make"+' '+
-                    "this clear, the left column becomes fixed in the provided"+' '+
-                    "order and only the cards in the right column can be"+' '+
-                    "moved.")
+                    React.DOM.p(null, "當此功能開啟時，第一欄欄位的順序必須完成符合。"),
+                    React.DOM.p(null, "此功能適合使用在證明題的論證步驟與其理由的配對。"),
+                    React.DOM.p(null, "當此功能關閉時，第一欄的欄位會固定下來，只讓使用者調整第二欄欄位的順序。")
                 )
             ),
             React.DOM.div(null, 
                 PropCheckBox(
-                    {label:"Padding:",
+                    {label:"留白:",
                     padding:this.props.padding,
                     onChange:this.props.onChange} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Padding is good for text, but not needed for images.")
+                    React.DOM.p(null, "建議在文字時加入「留白」，圖片模式不要加入。")
                 )
             )
         );
@@ -18835,13 +18751,13 @@ var MatcherEditor = React.createClass({displayName: 'MatcherEditor',
 
 module.exports = {
     name: "matcher",
-    displayName: "Two column matcher",
+    displayName: "Two column matcher/配對題",
     widget: Matcher,
     editor: MatcherEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/prop-check-box.jsx":130,"../components/sortable.jsx":132,"../components/text-list-editor.jsx":135,"../renderer.jsx":165,"../util.js":168,"react":115,"react-components/info-tip":5}],184:[function(require,module,exports){
+},{"../components/prop-check-box.jsx":62,"../components/sortable.jsx":64,"../components/text-list-editor.jsx":67,"../renderer.jsx":97,"../util.js":100,"react":45,"react-components/info-tip":39}],116:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React        = require('react');
@@ -18939,7 +18855,7 @@ var Measurer = React.createClass({displayName: 'Measurer',
     setupGraphie: function() {
         var graphieDiv = this.refs.graphieDiv.getDOMNode();
         $(graphieDiv).empty();
-        var graphie = this.graphie = KhanUtil.createGraphie(graphieDiv);
+        var graphie = this.graphie = KhanUtil.currentGraph = KhanUtil.createGraphie(graphieDiv);
 
         var scale = [40, 40];
         var range = [
@@ -18959,7 +18875,7 @@ var Measurer = React.createClass({displayName: 'Measurer',
         }
 
         if (this.props.showProtractor) {
-            this.protractor = graphie.protractor([
+            this.protractor = graphie.Protractor([
                 this.props.protractorX,
                 this.props.protractorY
             ]);
@@ -18970,7 +18886,7 @@ var Measurer = React.createClass({displayName: 'Measurer',
         }
 
         if (this.props.showRuler) {
-            this.ruler = graphie.ruler({
+            this.ruler = graphie.Ruler({
                 center: [
                     (range[0][0] + range[0][1]) / 2,
                     (range[1][0] + range[1][1]) / 2
@@ -19047,35 +18963,34 @@ var MeasurerEditor = React.createClass({displayName: 'MeasurerEditor',
         var image = _.extend({}, defaultImage, this.props.image);
 
         return React.DOM.div( {className:"perseus-widget-measurer"}, 
-            React.DOM.div(null, "Image displayed under protractor and/or ruler:"),
-            React.DOM.div(null, "URL:",' ',
+            React.DOM.div(null, "背景圖片:"),
+            React.DOM.div(null, "圖片網址:",' ',
                 React.DOM.input( {type:"text",
                         className:"perseus-widget-measurer-url",
                         ref:"image-url",
-                        defaultValue:image.url,
+                        value:image.url,
                         onChange:this._changeUrl} ),
             InfoTip(null, 
-                React.DOM.p(null, "Create an image in graphie, or use the \"Add image\" function"+' '+
-                "to create a background.")
+                React.DOM.p(null, "插入圖片的連結網址。例如，先將圖片上傳至 http://imgur.com ，再分享其圖片網址 (Direct Link)。 " )
             )
             ),
             image.url && React.DOM.div( {className:"perseus-widget-row"}, 
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    NumberInput( {label:"Pixels from top:",
+                    NumberInput( {label:"與上方的間隔畫素:",
                         placeholder:0,
                         onChange:this._changeTop,
                         value:image.top,
                         useArrowKeys:true} )
                 ),
                 React.DOM.div( {className:"perseus-widget-right-col"}, 
-                    NumberInput( {label:"Pixels from left:",
+                    NumberInput( {label:"與左方的間隔畫素:",
                         placeholder:0,
                         onChange:this._changeLeft,
                         value:image.left,
                         useArrowKeys:true} )
                 )
             ),
-            React.DOM.div(null, "Containing area [width, height]:",' ',
+            React.DOM.div(null, "圖片大小 [寬, 高]:",' ',
                 RangeInput(
                     {onChange:this.change("box"),
                     value:this.props.box,
@@ -19083,12 +18998,12 @@ var MeasurerEditor = React.createClass({displayName: 'MeasurerEditor',
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    PropCheckBox( {label:"Show ruler",
+                    PropCheckBox( {label:"顯示直尺",
                         showRuler:this.props.showRuler,
                         onChange:this.props.onChange} )
                 ),
                 React.DOM.div( {className:"perseus-widget-right-col"}, 
-                    PropCheckBox( {label:"Show protractor",
+                    PropCheckBox( {label:"顯示量角器",
                         showProtractor:this.props.showProtractor,
                         onChange:this.props.onChange} )
                 )
@@ -19096,26 +19011,26 @@ var MeasurerEditor = React.createClass({displayName: 'MeasurerEditor',
             this.props.showRuler && React.DOM.div(null, 
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Ruler label:",' ',
+                    ' ',"直尺單位:",' ',
                     React.DOM.select(
                         {onChange:function(e) 
                             {return this.change("rulerLabel", e.target.value);}.bind(this),
                         value:this.props.rulerLabel} , 
-                            React.DOM.option( {value:""}, "None"),
-                            React.DOM.optgroup( {label:"Metric"}, 
+                            React.DOM.option( {value:""}, "無"),
+                            React.DOM.optgroup( {label:"公制"}, 
                                 this.renderLabelChoices([
-                                    ["milimeters", "mm"],
-                                    ["centimeters", "cm"],
-                                    ["meters", "m"],
-                                    ["kilometers", "km"]
+                                    ["厘米", "mm"],
+                                    ["公分", "cm"],
+                                    ["公尺", "m"],
+                                    ["公里", "km"]
                                 ])
                             ),
-                            React.DOM.optgroup( {label:"Imperial"}, 
+                            React.DOM.optgroup( {label:"英制"}, 
                                 this.renderLabelChoices([
-                                    ["inches", "in"],
-                                    ["feet", "ft"],
-                                    ["yards", "yd"],
-                                    ["miles", "mi"]
+                                    ["英吋", "in"],
+                                    ["英呎", "ft"],
+                                    ["碼", "yd"],
+                                    ["英哩", "mi"]
                                 ])
                             )
                     )
@@ -19123,7 +19038,7 @@ var MeasurerEditor = React.createClass({displayName: 'MeasurerEditor',
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Ruler ticks:",' ',
+                    ' ',"每單位分割數:",' ',
                     React.DOM.select(
                         {onChange:function(e) 
                             {return this.change("rulerTicks", +e.target.value);}.bind(this),
@@ -19135,14 +19050,14 @@ var MeasurerEditor = React.createClass({displayName: 'MeasurerEditor',
                 )
             ),
             React.DOM.div(null, 
-                NumberInput( {label:"Ruler pixels per unit:",
+                NumberInput( {label:"每單位長的畫素:",
                     placeholder:40,
                     onChange:this.change("rulerPixels"),
                     value:this.props.rulerPixels,
                     useArrowKeys:true} )
             ),
             React.DOM.div(null, 
-                NumberInput( {label:"Ruler length in units:",
+                NumberInput( {label:"直尺長度:",
                     placeholder:10,
                     onChange:this.change("rulerLength"),
                     value:this.props.rulerLength,
@@ -19195,15 +19110,15 @@ propUpgrades = {
 
 module.exports = {
     name: "measurer",
-    displayName: "Measurer",
+    displayName: "Measurer/直尺、量角器",
     widget: Measurer,
     editor: MeasurerEditor,
     version: {major: 1, minor: 0},
     propUpgrades: propUpgrades,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../components/range-input.jsx":131,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"react":115,"react-components/info-tip":5}],185:[function(require,module,exports){
+},{"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../components/range-input.jsx":63,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"react":45,"react-components/info-tip":39}],117:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -19541,12 +19456,12 @@ var NumberLine = React.createClass({displayName: 'NumberLine',
             Line( {start:[tickCtrlLeft, 1.5], end:[tickCtrlRight, 1.5]} ),
             Label(
                 {coord:[textLeft, 1.5],
-                text:"fewer ticks",
+                text:"較少刻度",
                 direction:"center",
                 tex:false} ),
             Label(
                 {coord:[textRight, 1.5],
-                text:"more ticks",
+                text:"較多刻度",
                 direction:"center",
                 tex:false} ),
             MovablePoint(
@@ -19682,6 +19597,17 @@ var NumberLine = React.createClass({displayName: 'NumberLine',
         graphie.line([center, 0], [left, 0], {arrows: "->"});
     },
 
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = this.getDefaultProps();
+        }
+        if (answerData.rel === "eq") {
+            answerData.rel = "ge";
+            answerData.isInequality = false;
+        }
+        this.props.onChange(answerData);
+    },
+
     toJSON: function() {
         return {
             numLinePosition: this.props.numLinePosition,
@@ -19777,17 +19703,17 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
         }
 
         var labelStyleEditorButtons = [
-              {value: "decimal", text: "0.75", title: "Decimals",},
+              {value: "decimal", text: "0.75", title: "小數",},
               {value: "improper", text: "\u2077\u2044\u2084",
-                title: "Improper fractions"},
+                title: "假分數"},
               {value: "mixed", text: "1\u00BE",
-                title: "Mixed numbers"},
+                title: "帶分數"},
               {value: "non-reduced", text: "\u2078\u2044\u2084",
-                title: "Non-reduced"}];
+                title: "未化簡分數"}];
 
         return React.DOM.div( {className:"perseus-widget-number-line-editor"}, 
             React.DOM.div( {className:"perseus-widget-row"}, 
-                React.DOM.label(null, "correct x"),
+                React.DOM.label(null, "正確的 x"),
                 React.DOM.select( {value:this.props.correctRel,
                   onChange:this.onChangeRelation}, 
                     React.DOM.option( {value:"eq"},  " = " ),
@@ -19802,17 +19728,16 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
                     checkValidity:function(val) 
                         {return val >= range[0] && val <= range[1] &&
                         (!step || Math.abs(val - range[0]) % step === 0);},
-                    placeholder:"answer", size:"normal",
+                    placeholder:"答案", size:"normal",
                     useArrowKeys:true} ),
                 InfoTip(null, React.DOM.p(null, 
-                    "This is the correct answer. The answer is validated"+' '+
-                    "(as right or wrong) by using only the end position of the"+' '+
-                    "point and the relation (=, <, >, ≤, ≥)"
+                    "這是正確答案，會使用使用者移動的最終位置以及數學關係 (=, <, >, ≤, ≥) 來驗證答案是否正確。"+' '+
+                    "若底色變為紅色，代表使用者不可能透過操作得到這個答案。"
                 ))
             ),
 
             React.DOM.div( {className:"perseus-widget-row"}, 
-                NumberInput( {label:"position",
+                NumberInput( {label:"初始位置",
                     value:this.props.initialX,
                     format:this.props.labelStyle,
                     onChange:this.onNumChange.bind(this, "initialX"),
@@ -19825,15 +19750,12 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
                     format:this.props.labelStyle,
                     useArrowKeys:true} ),
                 InfoTip(null, React.DOM.p(null, 
-                    "This controls the initial position of the point along the"+' '+
-                    "number line and the ", React.DOM.strong(null, "range"),", the position"+' '+
-                    "of the endpoints of the number line. Setting the range"+' '+
-                    "constrains the position of the answer and the labels."
+                    "這控制橘色點在數線上的初始位置，以及在數線上可移動的 ", React.DOM.strong(null, "範圍"),"。"
                 ))
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    React.DOM.span(null, "labels " ),
+                    React.DOM.span(null, "標籤 " ),
                     NumberInput(
                         {value:labelRange[0], placeholder:range[0],
                         format:this.props.labelStyle,
@@ -19850,43 +19772,37 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
                         onChange:this.onLabelRangeChange.bind(this, 1),
                         useArrowKeys:true} ),
                     InfoTip(null, React.DOM.p(null, 
-                        "This controls the position of the left / right labels."+' '+
-                        "By default, the labels are set by the range ", React.DOM.br(null ),
-                        React.DOM.strong(null, "Note:"), " Ensure that the labels line up"+' '+
-                        "with the tick marks, or it may be confusing for users."
+                        "這控制左右標籤的位置，預設為移動範圍的兩端。",React.DOM.br(null ),
+                        React.DOM.strong(null, "注意:"), " 確保藍色標籤在黑色刻度線上，否則可能會讓使用者困惑。"
                     ))
                 )
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    React.DOM.label(null, "style"),
+                    React.DOM.label(null, "標籤格式"),
                     ButtonGroup( {allowEmpty:false,
                         value:this.props.labelStyle,
                         buttons:labelStyleEditorButtons,
                         onChange:this.onLabelStyleChange} ),
                     InfoTip(null, React.DOM.p(null, 
-                        "This controls the styling of the labels for the two"+' '+
-                        "main labels as well as all the tick mark labels,"+' '+
-                        "if applicable. Your choices are decimal,"+' '+
-                        "improper fractions, mixed fractions, and non-reduced"+' '+
-                        "fractions."
+                        "這控制標籤的格式，使用上，可以選擇「小數、假分數、帶分數、未化簡分數」。"
                     ))
                 )
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    PropCheckBox( {label:"show tick controller",
+                    PropCheckBox( {label:"顯示刻度線控制器",
                         isTickCtrl:this.props.isTickCtrl,
                         onChange:this.props.onChange} )
                 ),
                 React.DOM.div( {className:"perseus-widget-right-col"}, 
-                    PropCheckBox( {label:"show label ticks",
+                    PropCheckBox( {label:"顯示刻度代表的數字",
                         labelTicks:this.props.labelTicks,
                         onChange:this.props.onChange} )
                 )
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
-                NumberInput( {label:"num divisions",
+                NumberInput( {label:"分割數量",
                     value:this.props.numDivisions || null,
                     format:"decimal",
                     onChange:this.onNumDivisionsChange,
@@ -19902,15 +19818,11 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
                         onChange:this.onDivisionRangeChange,
                         useArrowKeys:true} ),
                     InfoTip(null, React.DOM.p(null, 
-                    "This controls the number (and position) of the tick marks."+' '+
-                    "The range dictates the minimum and maximum number of ticks"+' '+
-                    "that the user can make using the tick controller. ", React.DOM.br(null ),
-                    React.DOM.strong(null, "Note:"), " There is no check to see if labels"+' '+
-                    "coordinate with the tick marks, which may be confusing for"+' '+
-                    "users if the blue labels and black ticks are off-step."
+                    "這控制刻度線的數量，後面的範圍設定的是使用者用刻度線控制器可以調整的最大與最小分割數量。",React.DOM.br(null ),
+                    React.DOM.strong(null, "注意:"), " 沒有特別檢查藍色的標籤是否會在黑色刻度線上，若不在刻度線上可能會讓使用者困惑。"
                     ))),
                 !isTickCtrl && React.DOM.span(null, 
-                    NumberInput( {label: " or tick step",
+                    NumberInput( {label:"或一刻度為",
                         value:this.props.tickStep || null,
                         format:this.props.labelStyle,
                         onChange:this.onTickStepChange,
@@ -19918,28 +19830,21 @@ var NumberLineEditor = React.createClass({displayName: 'NumberLineEditor',
                         placeholder:width / this.props.numDivisions,
                         useArrowKeys:true} ),
                     InfoTip(null, React.DOM.p(null, 
-                    "This controls the number (and position) of the tick marks;"+' '+
-                    "you can either set the number of divisions (2 divisions"+' '+
-                    "would split the entire range in two halves), or the"+' '+
-                    "tick step (the distance between ticks) and the other"+' '+
-                    "value will be updated accordingly. ", React.DOM.br(null ),
-                    React.DOM.strong(null, "Note:"), " There is no check to see if labels"+' '+
-                    "coordinate with the tick marks, which may be confusing for"+' '+
-                    "users if the blue labels and black ticks are off-step."
+                    "這控制刻度線的位置與數量，可以設定分割數量 (2 表示把整個範圍分割成兩半)"+' '+ 
+                    "或者設定一刻度為多少 (相鄰兩刻度之間的距離)。設定其中一個另一個會自動更新為對應的值。 ", React.DOM.br(null ),
+                    React.DOM.strong(null, "注意:"), " 沒有特別檢查藍色的標籤是否會在黑色刻度線上，若不在刻度線上可能會讓使用者困惑。"
                     )))
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
-                NumberInput( {label:"snap increments per tick",
+                NumberInput( {label:"刻度之間的分割數量",
                     value:snapDivisions,
                     checkValidity:function(val)  {return val > 0;},
                     format:this.props.labelStyle,
                     onChange:this.onNumChange.bind(this, "snapDivisions"),
                     useArrowKeys:true} ),
                 InfoTip(null, React.DOM.p(null, 
-                    "This determines the number of different places the point"+' '+
-                    "will snap between two adjacent tick marks. ", React.DOM.br(null ),
-                    React.DOM.strong(null, "Note:"),"Ensure the required number of"+' '+
-                    "snap increments is provided to answer the question."
+                    "這控制兩個相鄰的刻度之間，被分成了幾份，也就是使用者可以將橘點移動到的位置。 ", React.DOM.br(null ),
+                    React.DOM.strong(null, "注意:"),"確保分割數量足夠讓使用者回答問題，即答案會落在某分割的位置。"
                 ))
             )
 
@@ -20068,14 +19973,14 @@ var NumberLineTransform = function(editorProps)  {
 
 module.exports = {
     name: "number-line",
-    displayName: "Number line",
+    displayName: "Number line/數線",
     widget: NumberLine,
     editor: NumberLineEditor,
     transform: NumberLineTransform,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/graphie.jsx":125,"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../components/range-input.jsx":131,"../interactive2.js":148,"../interactive2/interactive-util.js":149,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../util.js":168,"react":115,"react-components/button-group":3,"react-components/info-tip":5}],186:[function(require,module,exports){
+},{"../components/graphie.jsx":57,"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../components/range-input.jsx":63,"../interactive2.js":80,"../interactive2/interactive-util.js":81,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../util.js":100,"react":45,"react-components/button-group":37,"react-components/info-tip":39}],118:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -20091,29 +19996,29 @@ var InputWithExamples = require("../components/input-with-examples.jsx");
 
 var Editor = require("../editor.jsx");
 
-var firstNumericalParse = require("../util.js").firstNumericalParse;
+var Util = require("../util.js");
 
 var answerFormButtons = [
-    {title: "Integers", value: "integer", text: "6"},
-    {title: "Decimals", value: "decimal", text: "0.75"},
-    {title: "Proper fractions", value: "proper", text: "\u2157"},
-    {title: "Improper fractions", value: "improper",
+    {title: "整數", value: "integer", text: "6"},
+    {title: "小樹", value: "decimal", text: "0.75"},
+    {title: "真分數", value: "proper", text: "\u2157"},
+    {title: "假分數", value: "improper",
         text: "\u2077\u2044\u2084"},
-    {title: "Mixed numbers", value: "mixed", text: "1\u00BE"},
-    {title: "Numbers with \u03C0", value: "pi", text: "\u03C0"}
+    {title: "帶分數", value: "mixed", text: "1\u00BE"},
+    {title: "有 \u03C0 的數", value: "pi", text: "\u03C0"}
 ];
 
 var formExamples = {
-    "integer": function(options)  {return $._("an integer, like $6$");},
+    "integer": function(options)  {return $._("整數, 例 $6$");},
     "proper": function(options)  {return options.simplify === "optional" ?
-        $._("a *proper* fraction, like $1/2$ or $6/10$") :
-        $._("a *simplified proper* fraction, like $3/5$");},
+        $._("真分數, 例 $1/2$ or $6/10$") :
+        $._("最簡真分數, 例 $3/5$");},
     "improper": function(options)  {return options.simplify === "optional" ?
-        $._("an *improper* fraction, like $10/7$ or $14/8$") :
-        $._("a *simplified improper* fraction, like $7/4$");},
-    "mixed": function()  {return $._("a mixed number, like $1\\ 3/4$");},
-    "decimal": function()  {return $._("an *exact* decimal, like $0.75$");},
-    "pi": function()  {return $._("a multiple of pi, like $12\\ \\text{pi}$ or " +
+        $._("假分數, 例 $10/7$ or $14/8$") :
+        $._("最簡假分數, 例 $7/4$");},
+    "mixed": function()  {return $._("帶分數, 例 $1\\ 3/4$");},
+    "decimal": function()  {return $._("精確的小數, 例 $0.75$");},
+    "pi": function()  {return $._("pi 的倍數, 例 $12\\ \\text{pi}$ or " +
                 "$2/3\\ \\text{pi}$");}
 };
 
@@ -20140,7 +20045,7 @@ var NumericInput = React.createClass({displayName: 'NumericInput',
     },
 
     handleChange: function(newValue) {
-        this.props.onChange({ currentValue: newValue });
+        this.props.onChange({ currentValue: Util.asc(newValue) });
     },
 
     focus: function() {
@@ -20150,6 +20055,13 @@ var NumericInput = React.createClass({displayName: 'NumericInput',
 
     toJSON: function(skipValidation) {
         return {currentValue: this.props.currentValue};
+    },
+
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = {currentValue: ""};
+        }
+        this.props.onChange(answerData);
     },
 
     simpleValidate: function(rubric) {
@@ -20276,62 +20188,50 @@ var NumericInputEditor = React.createClass({displayName: 'NumericInputEditor',
         var answers = this.props.answers.concat(initAnswer(lastStatus));
 
         var unsimplifiedAnswers = function(i)  {return React.DOM.div( {className:"perseus-widget-row"}, 
-            React.DOM.label(null, "Unsimplified answers are"),
+            React.DOM.label(null, "未化簡的答案是"),
             ButtonGroup( {value:answers[i]["simplify"],
                          allowEmpty:false,
                          buttons:[
-                            {value: "required", text: "ungraded"},
-                            {value: "optional", text: "accepted"},
-                            {value: "enforced", text: "wrong"}],
+                            {value: "required", text: "不合適的"},
+                            {value: "optional", text: "可接受的"},
+                            {value: "enforced", text: "錯誤的"}],
                          onChange:this.updateAnswer(i, "simplify")} ),
             InfoTip(null, 
-                React.DOM.p(null, "Normally select \"ungraded\". This will give the"+' '+
-                "user a message saying the answer is correct but not"+' '+
-                "simplified. The user will then have to simplify it and"+' '+
-                "re-enter, but will not be penalized. (5th grade and after)"),
-                React.DOM.p(null, "Select \"accepted\" only if the user is not"+' '+
-                "expected to know how to simplify fractions yet. (Anything"+' '+
-                "prior to 5th grade)"),
-                React.DOM.p(null, "Select \"wrong\" ", React.DOM.em(null, "only"), " if we are"+' '+
-                "specifically assessing the ability to simplify.")
+                React.DOM.p(null, "預設是選取「不合適的」。會告訴使用者這個答案是對的但是沒有化簡。"+' '+
+                "使用者必須化簡後再重新送出答案，但不會算錯。(適用於五年級以上)"),
+                React.DOM.p(null, "只有當使用者不知道如何化簡分數時才選取「可接受的」。(適用於五年級以下)"),
+                React.DOM.p(null, React.DOM.em(null, "只有"),"在要學會化簡時才選取「錯誤的」。")
             )
         );}.bind(this);
 
         var suggestedAnswerTypes = function(i)  {return React.DOM.div(null, 
             React.DOM.div( {className:"perseus-widget-row"}, 
-                React.DOM.label(null, "Choose the suggested answer formats"),
+                React.DOM.label(null, "選擇建議的答題格式"),
                 MultiButtonGroup( {buttons:answerFormButtons,
                     values:answers[i]["answerForms"],
                     onChange:this.updateAnswer(i, "answerForms")} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Formats will be autoselected for you based on the"+' '+
-                        "given answer; to show no suggested formats and"+' '+
-                        "accept all types, simply have a decimal/integer be"+' '+
-                        "the answer. Values with π will have format \"pi\","+' '+
-                        "and values that are fractions will have some subset"+' '+
-                        "(mixed will be \"mixed\" and \"proper\"; improper/proper"+' '+
-                        "will both be \"improper\" and \"proper\"). If you would"+' '+
-                        "like to specify that it is only a proper fraction"+' '+
-                        "(or only a mixed/improper fraction), deselect the"+' '+
-                        "other format. Except for specific cases, you should"+' '+
-                        "not need to change the autoselected formats."),
-                    React.DOM.p(null, "To restrict the answer to ", React.DOM.em(null, "only"), " an improper"+' '+
-                        "fraction (i.e. 7/4), select the"+' '+
-                        "improper fraction and toggle \"strict\" to true."+' '+
-                        "This ", React.DOM.b(null, "will not"), " accept 1.75 as an answer. " ),
-                    React.DOM.p(null, "Unless you are testing that specific skill, please"+' '+
-                        "do not restrict the answer format.")
+                    React.DOM.p(null, "這邊選取的是學生在作答時，會顯示的答題建議格式。這邊會根據輸入的答案自動選取建議的格式。"+' '+
+                        "若輸入的答案為「小數、整數」則預設不顯示建議，同時不限制輸入的格式。"+' '+
+                        "若輸入的答案為帶有「π」的數值，則預設會顯示如何輸入 pi 的格式建議。"+' '+
+                        "若輸入的答案為「帶分數」，則預設會顯示帶分數以及真分數的格式建議。"+' '+
+                        "若輸入的答案為「假分數、真分數」，則預設會顯示假分數以及真分數的格式建議。"+' '+
+                        "因此若需要特別只顯示某個格式建議，再取消選取即可，一般使用不需要更動。"),
+                    React.DOM.p(null, "例如，如果想要限制答案 ", React.DOM.em(null, "只能是"), " 假分數 (譬如 7/4)，選取"+' '+
+                        "「假分數」並把「完全符合」打勾。"+' '+
+                        "這樣就 ", React.DOM.b(null, "不會"), " 接受輸入的答案為 1.75。"),
+                    React.DOM.p(null, "除非你需要測試學生的某個技能 (例如：分數)，一般使用請不要特別限制輸入的格式。")
                 )
             ),
             React.DOM.div( {className:"perseus-widget-row"}, 
-                PropCheckBox( {label:"Strictly match only these formats",
+                PropCheckBox( {label:"完全符合選取的答題格式",
                     strict:answers[i]["strict"],
                     onChange:this.updateAnswer.bind(this, i)} )
             )
         );}.bind(this);
 
         var maxError = function(i)  {return React.DOM.div( {className:"perseus-widget-row"}, 
-            NumberInput( {label:"Max error",
+            NumberInput( {label:"最大誤差",
                 className:"max-error",
                 value:answers[i]["maxError"],
                 onChange:this.updateAnswer(i, "maxError"),
@@ -20340,29 +20240,27 @@ var NumericInputEditor = React.createClass({displayName: 'NumericInputEditor',
 
 
         var inputSize = React.DOM.div(null, 
-                React.DOM.label(null, "Width:",' ', " " ),
+                React.DOM.label(null, "寬度:",' ', " " ),
                 ButtonGroup( {value:this.props.size, allowEmpty:false,
                     buttons:[
-                        {value: "normal", text: "Normal (80px)"},
-                        {value: "small", text: "Small (40px)"}],
+                        {value: "normal", text: "一般 (80px)"},
+                        {value: "small", text: "較小 (40px)"}],
                     onChange:this.change("size")} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use size \"Normal\" for all text boxes, unless there are"+' '+
-                    "multiple text boxes in one line and the answer area is too"+' '+
-                    "narrow to fit them.")
+                    React.DOM.p(null, "預設使用一般大小，除非需要很多個答案格在同一行，會出現放不下的情況。")
                 )
             );
 
         var instructions = {
-            "wrong":    "(address the mistake/misconception)",
-            "ungraded": "(explain in detail to avoid confusion)",
-            "correct":  "(reinforce the user's understanding)"
+            "wrong":    "(說明這個答案的錯誤之處或迷思概念)",
+            "ungraded": "(進一步解釋避免混淆)",
+            "correct":  "(加強使用者對觀念的理解)"
         };
 
         var generateInputAnswerEditors = function()  {return answers.map(function(answer, i)  {
             var editor = Editor({
                 content: answer.message || "",
-                placeholder: "Why is this answer " + answer.status + "?\t" +
+                placeholder: "為什麼這個答案是" + answer.status + "?\t" +
                     instructions[answer.status],
                 widgetEnabled: false,
                 onChange: function(newProps)  {
@@ -20389,13 +20287,13 @@ var NumericInputEditor = React.createClass({displayName: 'NumericInputEditor',
                                 forms = ["proper", "improper"];
                             }
                             this.updateAnswer(i, {
-                                value: firstNumericalParse(newValue),
+                                value: Util.firstNumericalParse(newValue),
                                 answerForms: forms
                             });
                         }.bind(this),
                         onChange:function(newValue)  {
                             this.updateAnswer(i, {
-                                value: firstNumericalParse(newValue)});
+                                value: Util.firstNumericalParse(newValue)});
                         }.bind(this)} ),
                     answer.strict && React.DOM.div( {className:"is-strict-indicator",
                         title:"strictly equivalent to"}, "≡"),
@@ -20531,10 +20429,10 @@ module.exports = {
     widget: NumericInput,
     editor: NumericInputEditor,
     transform: propsTransform,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/input-with-examples.jsx":126,"../components/multi-button-group.jsx":128,"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../editor.jsx":143,"../mixins/changeable.jsx":159,"../mixins/jsonify-props.jsx":160,"../util.js":168,"react":115,"react-components/button-group":3,"react-components/info-tip":5}],187:[function(require,module,exports){
+},{"../components/input-with-examples.jsx":58,"../components/multi-button-group.jsx":60,"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../editor.jsx":75,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"../util.js":100,"react":45,"react-components/button-group":37,"react-components/info-tip":39}],119:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React          = require('react');
@@ -21098,11 +20996,9 @@ var OrdererEditor = React.createClass({displayName: 'OrdererEditor',
 
         return React.DOM.div( {className:"perseus-widget-orderer"}, 
             React.DOM.div(null, 
-                ' ',"Correct answer:",' ',
+                ' ',"正確答案:",' ',
                 InfoTip(null, React.DOM.p(null, 
-                    "Place the cards in the correct order. The same card can be"+' '+
-                    "used more than once in the answer but will only be"+' '+
-                    "displayed once at the top of a stack of identical cards."
+                    "請將卡片依正確答案的順序排列，答案中允許使用多張相同的卡片，但在候選卡片中僅會顯示一次。"
                 ))
             ),
             TextListEditor(
@@ -21111,9 +21007,9 @@ var OrdererEditor = React.createClass({displayName: 'OrdererEditor',
                 layout:this.props.layout} ),
 
             React.DOM.div(null, 
-                ' ',"Other cards:",' ',
+                ' ',"其他卡片:",' ',
                 InfoTip(null, 
-                    React.DOM.p(null, "Create cards that are not part of the answer.")
+                    React.DOM.p(null, "可在此增加不在答案中使用的卡片。")
                 )
             ),
             TextListEditor(
@@ -21123,30 +21019,29 @@ var OrdererEditor = React.createClass({displayName: 'OrdererEditor',
 
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Layout:",' ',
+                    ' ',"顯示方式:",' ',
                     React.DOM.select( {value:this.props.layout,
                             onChange:this.onLayoutChange}, 
-                        React.DOM.option( {value:HORIZONTAL}, "Horizontal"),
-                        React.DOM.option( {value:VERTICAL}, "Vertical")
+                        React.DOM.option( {value:HORIZONTAL}, "水平方式"),
+                        React.DOM.option( {value:VERTICAL}, "垂直方式")
                     )
                 ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use the horizontal layout for short text and small"+' '+
-                    "images. The vertical layout is best for longer text (e.g."+' '+
-                    "proofs).")
+                    React.DOM.p(null, "當卡片中的文字較短或是圖形較小時，建議可選用水平方式顯示，"+' '+
+                        "垂直方式較適用於較長的文字敘述 (如：證明) 或較大的圖形。")
                 )
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Height:",' ',
+                    ' ',"顯示高度:",' ',
                     React.DOM.select( {value:this.props.height,
                             onChange:this.onHeightChange}, 
-                        React.DOM.option( {value:NORMAL}, "Normal"),
-                        React.DOM.option( {value:AUTO}, "Automatic")
+                        React.DOM.option( {value:NORMAL}, "一般大小"),
+                        React.DOM.option( {value:AUTO}, "自動調整")
                     )
                 ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use \"Normal\" for text, \"Automatic\" for images.")
+                    React.DOM.p(null, "若卡片內容為文字時，建議選用\"一般大小\"；若卡片內容為圖片時，建議選用\"自動調整\"。")
                 )
             )
         );
@@ -21204,13 +21099,13 @@ var OrdererEditor = React.createClass({displayName: 'OrdererEditor',
 
 module.exports = {
     name: "orderer",
-    displayName: "Orderer",
+    displayName: "Orderer/卡片重組",
     widget: Orderer,
     editor: OrdererEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/text-list-editor.jsx":135,"../renderer.jsx":165,"../util.js":168,"react":115,"react-components/info-tip":5}],188:[function(require,module,exports){
+},{"../components/text-list-editor.jsx":67,"../renderer.jsx":97,"../util.js":100,"react":45,"react-components/info-tip":39}],120:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -21895,7 +21790,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
         var canChangeSnaps = !_.contains([PIC, DOTPLOT], this.props.type);
         return React.DOM.div( {className:"perseus-widget-plotter-editor"}, 
             React.DOM.div(null, 
-                "Chart type:",' ',
+                "圖表種類:",' ',
                 _.map([BAR, LINE, PIC, HISTOGRAM, DOTPLOT], function(type) {
                     return React.DOM.label( {key:type}, 
                         React.DOM.input(
@@ -21908,8 +21803,8 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
                 }, this)
             ),
             React.DOM.div(null, 
-                "Labels:",' ',
-                _.map(["x", "y"], function(axis, i) {
+                "標籤:",' ',
+                _.map(["x軸", "y軸"], function(axis, i) {
                     return React.DOM.label( {key:axis}, 
                         axis + ":",
                         React.DOM.input(
@@ -21922,11 +21817,11 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
 
             setFromScale && React.DOM.div( {className:"set-from-scale-box"}, 
                 React.DOM.span( {className:"categories-title"}, 
-                    "Set Categories From Scale"
+                    "批次設定類別 (x軸)"
                 ),
                 React.DOM.div(null, 
                     React.DOM.label(null, 
-                        "Tick Step:",' ',
+                        "間距:",' ',
                         NumberInput(
                             {placeholder:1,
                             useArrowKeys:true,
@@ -21934,12 +21829,12 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
                             onChange:this.handleChangeTickStep} )
                     ),
                     InfoTip(null, 
-                        React.DOM.p(null, "The difference between adjacent ticks.")
+                        React.DOM.p(null, "兩個資料點間的間距。")
                     )
                 ),
                 React.DOM.div(null, 
                     React.DOM.label(null, 
-                        "Range:",' ',
+                        "範圍:",' ',
                         RangeInput(
                             {placeholder:[0, 10],
                             useArrowKeys:true,
@@ -21949,13 +21844,13 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
                 ),
                 React.DOM.div(null, 
                     React.DOM.button( {onClick:this.setCategoriesFromScale}, 
-                        "Set Categories",' '
+                        "設定",' '
                     )
                 )
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Label Interval:",' ',
+                    "標籤範圍:",' ',
                     NumberInput(
                         {useArrowKeys:true,
                         value:this.props.labelInterval,
@@ -21969,7 +21864,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
             ),
             this.props.type === PIC && React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Picture:",' ',
+                    "圖例:",' ',
                     React.DOM.input(
                         {type:"text",
                         className:"pic-url",
@@ -21977,8 +21872,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
                         onKeyPress:this.changePicUrl,
                         onBlur:this.changePicUrl} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use the default picture of Earth, or insert the URL for"+' '+
-                    "a different picture using the \"Add image\" function.")
+                    React.DOM.p(null, "預設值為地球圖例，若要使用特定圖例，請於此處輸入圖片連結網址。")
                 )
                 ),
                 this.state.pic &&
@@ -21991,7 +21885,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Categories:",' ',
+                    "類別 (x軸):",' ',
                     TextListEditor(
                         {ref:"categories",
                         layout:"horizontal",
@@ -22001,7 +21895,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Scale (y):",' ',
+                    "組距 (y軸):",' ',
                     React.DOM.input(
                         {type:"text",
                         onChange:this.changeScale,
@@ -22010,7 +21904,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Max y:",' ',
+                    "最大值 (y軸):",' ',
                     React.DOM.input(
                         {type:"text",
                         ref:"maxY",
@@ -22020,21 +21914,21 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
             ),
             canChangeSnaps && React.DOM.div(null, 
                 React.DOM.label(null, 
-                    "Snaps per line:",' ',
+                    "垂直拖拉間距參數:",' ',
                     React.DOM.input(
                         {type:"text",
                         onChange:this.changeSnaps,
                         defaultValue:this.props.snapsPerLine} )
                 ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Creates the specified number of divisions between the"+' '+
-                    "horizontal lines. Fewer snaps between lines makes the graph"+' '+
-                    "easier for the student to create correctly.")
+                    React.DOM.p(null, "用以調整學生在拖拉答案時的，y 軸的單位間距前進比例，舉例來說，"+' '+
+                        "當此參數設定為 2 之時，每次的拖拉時的前進單位為 1/2 個 y 軸"+' '+
+                        "單位間距。一般來說，為求學生作答時的便利性，此值不宜設定太大。")
                 )
             ),
             React.DOM.div(null, 
-                "Editing values:",' ',
-                _.map(["correct", "starting"], function(editing) {
+                "圖表編輯值:",' ',
+                _.map(["答案值", "起始值"], function(editing) {
                     return React.DOM.label( {key:editing}, 
                         React.DOM.input(
                             {type:"radio",
@@ -22045,10 +21939,7 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
                     );
                 }, this),
                 InfoTip(null, React.DOM.p(null, 
-                    "Use this toggle to switch between editing the correct"+' '+
-                    "answer (what the student will be graded on) and the"+' '+
-                    "starting values (what the student will see plotted when"+' '+
-                    "they start the problem). Note: These cannot be the same."
+                    "選用\"答案值\"編輯此題的圖表答案；選用\"起始值\"編輯此題作答前的圖表預設樣式。"
                 ))
             ),
             this.transferPropsTo(
@@ -22205,13 +22096,13 @@ var PlotterEditor = React.createClass({displayName: 'PlotterEditor',
 
 module.exports = {
     name: "plotter",
-    displayName: "Plotter",
+    displayName: "Plotter/統計圖",
     widget: Plotter,
     editor: PlotterEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/number-input.jsx":129,"../components/range-input.jsx":131,"../components/text-list-editor.jsx":135,"../util.js":168,"react":115,"react-components/info-tip":5}],189:[function(require,module,exports){
+},{"../components/number-input.jsx":61,"../components/range-input.jsx":63,"../components/text-list-editor.jsx":67,"../util.js":100,"react":45,"react-components/info-tip":39}],121:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -22255,7 +22146,7 @@ var BaseRadio = React.createClass({displayName: 'BaseRadio',
                 "above-scratchpad blank-background"}, 
             this.props.multipleSelect &&
                 React.DOM.div( {className:"instructions"}, 
-                    $_(null, "Select all that apply.")
+                    $_(null, "請選擇所有正確的答案。")
                 ),
             this.props.choices.map(function(choice, i) {
 
@@ -22417,6 +22308,18 @@ var Radio = React.createClass({displayName: 'Radio',
         });
     },
 
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            renderedAnswerData = {values: undefined};
+        } else {
+            var renderedAnswerData = {'values': []};
+            for (var i = 0; i < this.props.choices.length; i++) {
+                renderedAnswerData['values'].push(answerData['values'][this.props.choices[i].originalIndex]);
+            }
+        }
+        this.props.onChange(renderedAnswerData);
+    },
+
     toJSON: function(skipValidation) {
         // Return checked inputs in the form {values: [bool]}. (Dear future
         // timeline implementers: this used to be {value: i} before multiple
@@ -22440,12 +22343,9 @@ var Radio = React.createClass({displayName: 'Radio',
                 }
             }
 
-            return _.extend({}, this.props, {
+            return {
                 values: values,
-                noneOfTheAboveIndex: noneOfTheAboveIndex,
-                noneOfTheAboveSelected: noneOfTheAboveSelected
-              }
-            );
+            };
         } else {
             // Nothing checked
             return {
@@ -22469,7 +22369,7 @@ var Radio = React.createClass({displayName: 'Radio',
     },
 
     statics: {
-        displayMode: "block"
+        displayMode: "inline-block"
     }
 });
 
@@ -22510,7 +22410,7 @@ _.extend(Radio, {
                 type: "points",
                 earned: correct ? 1 : 0,
                 total: 1,
-                message: null
+                message: rubric.choices[_.indexOf(state.values, true)].clue
             };
         }
     }
@@ -22548,7 +22448,7 @@ var RadioEditor = React.createClass({displayName: 'RadioEditor',
             React.DOM.div( {className:"perseus-widget-row"}, 
             
                 React.DOM.div( {className:"perseus-widget-left-col"}, 
-                    PropCheckBox( {label:"Multiple selections",
+                    PropCheckBox( {label:"多選題",
                                   labelAlignment:"right",
                                   multipleSelect:this.props.multipleSelect,
                                   onChange:this.onMultipleSelectChange} )
@@ -22569,7 +22469,7 @@ var RadioEditor = React.createClass({displayName: 'RadioEditor',
                         ref: "editor" + i,
                         content: choice.content || "",
                         widgetEnabled: false,
-                        placeholder: "Type a choice here...",
+                        placeholder: "請輸入選項內容",
                         onChange: function(newProps)  {
                             if ("content" in newProps) {
                                 this.onContentChange(i, newProps.content);
@@ -22579,7 +22479,7 @@ var RadioEditor = React.createClass({displayName: 'RadioEditor',
                         ref: "clue-editor-" + i,
                         content: choice.clue || "",
                         widgetEnabled: false,
-                        placeholder: $._("Why is this choice " +
+                        placeholder: $._("為什麼這個選項 " +
                             checkedClass + "?"),
                         onChange: function(newProps)  {
                             if ("content" in newProps) {
@@ -22615,7 +22515,7 @@ var RadioEditor = React.createClass({displayName: 'RadioEditor',
                 React.DOM.a( {href:"#", className:"simple-button orange",
                         onClick:this.addChoice}, 
                     React.DOM.span( {className:"icon-plus"} ),
-                    ' ',"Add a choice",' '
+                    ' ',"增加選項",' '
                 )
             )
 
@@ -22755,13 +22655,13 @@ var choiceTransform = function(editorProps)  {
 
 module.exports = {
     name: "radio",
-    displayName: "Multiple choice",
+    displayName: "Radio/選擇題",
     widget: Radio,
     editor: RadioEditor,
     transform: choiceTransform
 };
 
-},{"../components/prop-check-box.jsx":130,"../editor.jsx":143,"../mixins/changeable.jsx":159,"../perseus-api.jsx":162,"../renderer.jsx":165,"../util.js":168,"react":115,"react-components/button-group":3,"react-components/info-tip":5}],190:[function(require,module,exports){
+},{"../components/prop-check-box.jsx":62,"../editor.jsx":75,"../mixins/changeable.jsx":91,"../perseus-api.jsx":94,"../renderer.jsx":97,"../util.js":100,"react":45,"react-components/button-group":37,"react-components/info-tip":39}],122:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React          = require('react');
@@ -22809,6 +22709,35 @@ var Sorter = React.createClass({displayName: 'Sorter',
                 onChange:this.props.onChange,
                 ref:"sortable"} )
         );
+    },
+
+    setAnswerFromJSON: function(answerData) {
+        sortable = this.refs.sortable;
+        if (answerData === undefined) {
+            sortable.setState({
+                items: sortable.clearItemMeasurements(sortable.state.items)
+            });
+        } else {
+            items = sortable.state.items;
+            result = [];
+
+            answerData.options.forEach(function(key) {
+                var found = false;
+                items = items.filter(function(item) {
+                    if(!found && item['option'] == key) {
+                        result.push(item);
+                        found = true;
+                        return false;
+                    } else 
+                        return true;
+                })
+            });
+            sortable.setState({items: result});
+        }
+        // HACK: We need to know *that* the widget changed, but currently it's
+        // not set up in a nice way to tell us *how* it changed, since the
+        // permutation of the items is stored in state.
+        this.props.onChange({});
     },
 
     toJSON: function(skipValidation) {
@@ -22859,11 +22788,9 @@ var SorterEditor = React.createClass({displayName: 'SorterEditor',
 
         return React.DOM.div(null, 
             React.DOM.div(null, 
-                ' ',"Correct answer:",' ',
+                ' ',"正確答案:",' ',
                 InfoTip(null, React.DOM.p(null, 
-                    "Enter the correct answer (in the correct order) here. The"+' '+
-                    "preview on the right will have the cards in a randomized"+' '+
-                    "order, which is how the student will see them."
+                    "在這邊輸入正確的排序，右邊的預覽畫面會是隨機的排序，也就是學生會看到的畫面。"
                 ))
             ),
             TextListEditor(
@@ -22874,26 +22801,25 @@ var SorterEditor = React.createClass({displayName: 'SorterEditor',
                 layout:this.props.layout} ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Layout:",' ',
+                    ' ',"顯示方式:",' ',
                     React.DOM.select( {value:this.props.layout,
                             onChange:this.onLayoutChange}, 
-                        React.DOM.option( {value:HORIZONTAL}, "Horizontal"),
-                        React.DOM.option( {value:VERTICAL}, "Vertical")
+                        React.DOM.option( {value:HORIZONTAL}, "水平方式"),
+                        React.DOM.option( {value:VERTICAL}, "垂直方式")
                     )
                 ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Use the horizontal layout for short text and small"+' '+
-                    "images. The vertical layout is best for longer text and"+' '+
-                    "larger images.")
+                    React.DOM.p(null, "當卡片中的文字較短或是圖形較小時，建議可選用水平方式顯示，垂直"+' '+
+                        "方式較適用於較長的文字敘述 (如：證明) 或較大的圖形。")
                 )
             ),
             React.DOM.div(null, 
                 PropCheckBox(
-                    {label:"Padding:",
+                    {label:"留白:",
                     padding:this.props.padding,
                     onChange:this.props.onChange} ),
                 InfoTip(null, 
-                    React.DOM.p(null, "Padding is good for text, but not needed for images.")
+                    React.DOM.p(null, "留白適合用在文字，若為圖片則不需要。")
                 )
             )
         );
@@ -22910,13 +22836,518 @@ var SorterEditor = React.createClass({displayName: 'SorterEditor',
 
 module.exports = {
     name: "sorter",
-    displayName: "Sorter",
+    displayName: "Sorter/排序",
     widget: Sorter,
     editor: SorterEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/prop-check-box.jsx":130,"../components/sortable.jsx":132,"../components/text-list-editor.jsx":135,"../util.js":168,"react":115,"react-components/info-tip":5}],191:[function(require,module,exports){
+},{"../components/prop-check-box.jsx":62,"../components/sortable.jsx":64,"../components/text-list-editor.jsx":67,"../util.js":100,"react":45,"react-components/info-tip":39}],123:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require('react');
+var Changeable = require("../mixins/changeable.jsx");
+var JsonifyProps = require("../mixins/jsonify-props.jsx");
+var classNames = require('classnames');
+
+var textInputStyle = {
+    fontSize: "25px",
+    marginRight: "5px",
+    paddingTop: "15px",
+    paddingBottom: "15px",
+    marginTop: "15px",
+    marginBottom: "15px",
+};
+
+var TextInput = React.createClass({displayName: 'TextInput',
+    render: function() {
+        return React.DOM.input( {style:textInputStyle, ref:"input", value:this.props.value || "", onChange:this.changeValue, onPaste:this.pasteValue, onKeyPress:this.keypressValue});
+    },
+
+    pasteValue: function(e) {
+        e.preventDefault();
+        return false;
+    },
+
+    keypressValue: function(e) {
+        e.preventDefault();
+        return false;
+    },
+
+    changeValue: function(e) {
+        // Chrome Speech API
+        if (e.target.value) {
+            this.props.setValue(e.target.value);
+        // iOS Siri Input
+        } else {
+            this.props.setValue(this.refs.input.value);
+        }
+    },
+
+    statics: {
+        displayMode: "inline-block"
+    }
+});
+
+var infoStyle = {
+    background: "#3498DB !important",
+    color: "#fff !important",
+    textShadow: "0px 0px #fff !important",
+    marginLeft: 10,
+    border: '1px solid #ccc',
+    borderBottom: '1px solid #bbb',
+    borderRadius: '5px',
+    backgroundRepeat: 'repeat-x',
+    cursor: 'pointer !important',
+    fontFamily: 'inherit',
+    lineHeight: '22px',
+    padding: '5px 10px',
+    position: 'relative',
+    textDecoration: 'none !important'
+}
+
+var iconButtonStyle = {
+    width: "45px",
+    lineHeight: 1.5,
+}
+
+var buttonStyle = {
+
+}
+
+var inlineStyle = {
+    display: 'inline-block'
+}
+
+var SpeakingBtn = React.createClass({displayName: 'SpeakingBtn',
+    render: function() {
+        var btnIconCLass = classNames({
+            'fa fa-2x': true,
+            'fa-microphone': !this.state.recognizing,
+            'fa fa-spinner fa-spin fa-fw': this.state.recognizing
+        });
+        return (
+            React.DOM.div( {style:inlineStyle}, 
+                this.recognition
+                    ? React.DOM.button( {style:buttonStyle, onClick:this.startRecognizeOnClick, className:"simple-button orange"}, 
+                        React.DOM.i( {style:iconButtonStyle, className:btnIconCLass})
+                        )
+                    : React.DOM.div(null, 
+                    React.DOM.button( {style:buttonStyle, onClick:this.resetOnClick, className:"simple-button orange"}, 
+                            React.DOM.i( {style:iconButtonStyle, className:"fa fa-refresh fa-2x"})
+                    ),
+                    React.DOM.span( {style:infoStyle}, this.state.status)
+                    )
+                    
+            )
+        );
+    },
+    //
+
+    getInitialState: function() {
+        return {recognizing: false, status: ""}
+    },
+
+    startRecognize: function() {
+        if (this.state.recognizing == false) {
+            this.recognition.start();
+        }
+        else{
+            this.recognition.stop();
+        }
+    },
+
+    // prevent trigger checking answer when clicking button
+    startRecognizeOnClick: function(e) {
+        this.startRecognize();
+        e.preventDefault();
+        return false;
+    },
+
+    // ignore clicking event
+    resetOnClick: function(e) {
+        this.props.setValue('');
+        e.preventDefault();
+        return false;
+    },
+
+    componentWillMount: function() {
+        var self = this;
+        var os = self.getMobileOperatingSystem();
+        if (self.hasSpeechRecognition()) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 20;
+            self.setState({recognizing: false});
+            recognition.onstart = function() {
+                self.setState({recognizing: true});
+                self.props.setValue('');
+            };
+            recognition.onend = function() {
+                self.setState({recognizing: false});
+            };
+            recognition.onresult = function(event) {
+                var res = '';
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        for (var j = 0; j < event.results[i].length; j++) {
+                            if (j != 0) {
+                                res = res + '/';
+                            }
+                            res = res + event.results[i][j].transcript;
+                            self.props.setValue(res);
+                        }
+                    }
+                }
+            }
+            self.recognition = recognition;
+        } else {
+            if (os == 'iOS') {
+                self.setState({status: "點選上面的框框 用Siri語音輸入"});
+            } else if (os == 'Android') {
+                self.setState({status: "點選上面的框框 用Google語音輸入"});
+            } else {
+                self.setState({status: "請切換至Chrome瀏覽器"});
+            }
+        }
+    },
+
+    getMobileOperatingSystem: function() {
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        if (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i)) {
+            return 'iOS';
+        } else if (userAgent.match(/Android/i)) {
+            return 'Android';
+        } else {
+            return userAgent;
+        }
+    },
+
+    hasSpeechRecognition: function() {
+        return ('webkitSpeechRecognition' in window);
+    },
+
+    statics: {
+        displayMode: "inline-block"
+    }
+});
+
+var SpeakingTextInput = React.createClass({displayName: 'SpeakingTextInput',
+    propTypes: {
+        value: React.PropTypes.string
+    },
+
+    getDefaultProps: function() {
+        return {value: ""};
+    },
+
+    getInitialState: function() {
+        return {value: this.props.value}
+    },
+
+    // compare answer when setting value to prevent generate long atempt dict
+    setValue: function(val) {
+        val = val || '';
+        var correntAns = SpeakingTextInput.parseAnswer(this.props.correct);
+        var userAnsList = val.split("/");
+        var correntIdx = -1;
+        for (var i = 0, len = userAnsList.length; i < len; i++) {
+            if (SpeakingTextInput.arrIsEqual(SpeakingTextInput.parseAnswer(userAnsList[i]), correntAns)) {
+                correntIdx = i;
+                break;
+            }
+        }
+        // if the answer is wrong, set value to the first answer
+        if(correntIdx == -1 || correntIdx >= this.props.correctIdxLessThen){
+            this.setState({value: userAnsList[0]});
+            this.change("value")(userAnsList[0]);
+        }
+        // else set value to the correct answer
+        else{
+            this.setState({value: this.props.correct});
+            this.change("value")(this.props.correct);
+        }
+    },
+
+    mixins: [
+        Changeable, JsonifyProps
+    ],
+
+    render: function() {
+        return (
+            React.DOM.div(null, 
+                TextInput( {value:this.state.value, setValue:this.setValue}),
+                SpeakingBtn( {setValue:this.setValue})
+            )
+        );
+    },
+
+    simpleValidate: function(rubric) {
+        return SpeakingTextInput.validate(this.toJSON(), rubric);
+    },
+
+    statics: {
+        displayMode: "inline-block"
+    }
+});
+
+_.extend(SpeakingTextInput, {
+    parseAnswer: function(s) {
+        var arr = s.split(" ");
+        var parsedArr = [];
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].length > 0) {
+                parsedArr.push(arr[i].toLowerCase());
+            }
+        }
+        return parsedArr;
+    },
+
+    arrIsEqual: function(arr1, arr2) {
+        if (arr1.length !== arr2.length)
+            return false;
+        for (var i = 0, len = arr1.length; i < len; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+        return true;
+    },
+
+    validate: function(state, rubric) {
+        var correct = SpeakingTextInput.arrIsEqual(
+            SpeakingTextInput.parseAnswer(rubric.correct),
+            SpeakingTextInput.parseAnswer(state.value)
+        );
+        if (state.value == '') {
+            return {type: 'invalid', message: '請重新再唸一次！'};
+        } else if (correct) {
+            return {type: 'points', earned: 1, total: 1, message: null};
+        } else {
+            return {type: 'points', earned: 0, total: 1, message: null};
+        }}
+    });
+
+    var SpeakingTextInputEditor = React.createClass({displayName: 'SpeakingTextInputEditor',
+        mixins: [
+            Changeable, JsonifyProps
+        ],
+
+        getDefaultProps: function() {
+            return {correct: "", correctIdxLessThen: 5};
+        },
+
+        handleAnswerChange: function(event) {
+            this.change({correct: event.target.value});
+        },
+
+        handleCorrectIdxChange: function(event) {
+            this.change({
+                correctIdxLessThen: parseInt(event.target.value)
+            });
+        },
+
+        render: function() {
+            return React.DOM.div(null, 
+                React.DOM.div(null, 
+                    React.DOM.label(null, 
+                        "正確答案:",
+                        React.DOM.input( {value:this.props.correct, onChange:this.handleAnswerChange})
+                    )
+                ),
+                React.DOM.div(null, 
+                    React.DOM.label(null, 
+                        "精準度 (1-20):",
+                        React.DOM.input( {value:this.props.correctIdxLessThen, onChange:this.handleCorrectIdxChange, type:"integer"})
+                    )
+                )
+            );
+        },
+    });
+
+    module.exports = {
+        name: "speaking-text-input",
+        displayName: "English Speech Recognition/英文口說辨識",
+        widget: SpeakingTextInput,
+        editor: SpeakingTextInputEditor
+    };
+
+},{"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"classnames":3,"react":45}],124:[function(require,module,exports){
+/** @jsx React.DOM */
+
+var React = require('react');
+var Changeable = require("../mixins/changeable.jsx");
+var JsonifyProps = require("../mixins/jsonify-props.jsx");
+var ResponsiveVoice = require('../../lib/responsivevoice.js');
+
+var iconButtonStyle = {
+    width: "45px",
+    lineHeight: 1.5,
+}
+
+var buttonStyle = {
+    marginTop: "5px",
+    marginBottom: "5px",
+}
+
+var SpeakingVoice = React.createClass({displayName: 'SpeakingVoice',
+    componentDidMount: function() {
+        this.responsiveVoice = new ResponsiveVoice;
+        this.responsiveVoice.init(); // must manually init
+    },
+
+    speak: function() {
+        this.responsiveVoice.speak(this.props.voiceText, this.props.lang, {
+            pitch: parseFloat(this.props.pitch),
+            rate: parseFloat(this.props.rate),
+            volume: this.props.volume
+        });
+    },
+
+    // prevent trigger checking answer when clicking button
+    speakOnClick: function(e) {
+        this.speak();
+        e.preventDefault();
+        return false;
+    },
+
+    mixins: [
+        Changeable, JsonifyProps
+    ],
+
+    render: function() {
+        return (
+            React.DOM.div(null, 
+                React.DOM.button( {style:buttonStyle, className:"simple-button green", onClick:this.speakOnClick}, React.DOM.i( {style:iconButtonStyle, className:"fa fa-volume-up fa-2x"}))
+            )
+        );
+    },
+
+    simpleValidate: function(rubric) {
+        return {type: "points", earned: 1, total: 1, message: null};
+    },
+
+    statics: {
+        displayMode: "inline-block"
+    }
+});
+
+var SpeakingVoiceEditor = React.createClass({displayName: 'SpeakingVoiceEditor',
+    mixins: [
+        Changeable, JsonifyProps
+    ],
+
+    getDefaultProps: function() {
+        return {voiceText: "", pitch: "1.0", rate: "1.0", volume: "1.0", lang: "US English Female"}
+    },
+
+    getInitialState: function() {
+        return {voiceText: this.props.voiceText, pitch: this.props.pitch, rate: this.props.rate, volume: this.props.volume, lang: this.props.lang}
+    },
+
+    pitchChange: function(event) {
+        this.change({pitch: event.target.value});
+        this.setState({pitch: event.target.value});
+    },
+
+    voiceTextChange: function(event) {
+        this.change({voiceText: event.target.value});
+        this.setState({voiceText: event.target.value});
+    },
+
+    rateChange: function(event) {
+        this.change({rate: event.target.value});
+        this.setState({rate: event.target.value});
+    },
+
+    langChange: function(event) {
+        this.change({lang: event.target.value});
+        this.setState({lang: event.target.value});
+    },
+
+    render: function() {
+        return React.DOM.div(null, 
+            React.DOM.div(null, 
+                React.DOM.label(null, 
+                    "內容:",
+                    React.DOM.input( {value:this.state.voiceText, onChange:this.voiceTextChange, defaultValue:this.state.voiceText})
+                )
+            ),
+            React.DOM.div(null, 
+                React.DOM.label(null, 
+                    "速度:",
+                    React.DOM.select( {value:this.state.rate, defaultValue:this.state.rate, onChange:this.rateChange}, 
+                        React.DOM.option( {value:"0.1"}, "0.1"),
+                        React.DOM.option( {value:"0.2"}, "0.2"),
+                        React.DOM.option( {value:"0.3"}, "0.3"),
+                        React.DOM.option( {value:"0.4"}, "0.4"),
+                        React.DOM.option( {value:"0.5"}, "0.5"),
+                        React.DOM.option( {value:"0.6"}, "0.6"),
+                        React.DOM.option( {value:"0.7"}, "0.7"),
+                        React.DOM.option( {value:"0.8"}, "0.8"),
+                        React.DOM.option( {value:"0.9"}, "0.9"),
+                        React.DOM.option( {value:"1.0"}, "1.0"),
+                        React.DOM.option( {value:"1.1"}, "1.1"),
+                        React.DOM.option( {value:"1.2"}, "1.2"),
+                        React.DOM.option( {value:"1.3"}, "1.3"),
+                        React.DOM.option( {value:"1.4"}, "1.4"),
+                        React.DOM.option( {value:"1.5"}, "1.5")
+                    )
+                )
+            ),
+            React.DOM.div(null, 
+                React.DOM.label(null, 
+                    "音調:",
+                    React.DOM.select( {value:this.state.pitch, defaultValue:this.state.pitch, onChange:this.pitchChange}, 
+                        React.DOM.option( {value:"0"}, "0"),
+                        React.DOM.option( {value:"0.1"}, "0.1"),
+                        React.DOM.option( {value:"0.2"}, "0.2"),
+                        React.DOM.option( {value:"0.3"}, "0.3"),
+                        React.DOM.option( {value:"0.4"}, "0.4"),
+                        React.DOM.option( {value:"0.5"}, "0.5"),
+                        React.DOM.option( {value:"0.6"}, "0.6"),
+                        React.DOM.option( {value:"0.7"}, "0.7"),
+                        React.DOM.option( {value:"0.8"}, "0.8"),
+                        React.DOM.option( {value:"0.9"}, "0.9"),
+                        React.DOM.option( {value:"1.0"}, "1.0"),
+                        React.DOM.option( {value:"1.1"}, "1.1"),
+                        React.DOM.option( {value:"1.2"}, "1.2"),
+                        React.DOM.option( {value:"1.3"}, "1.3"),
+                        React.DOM.option( {value:"1.4"}, "1.4"),
+                        React.DOM.option( {value:"1.5"}, "1.5"),
+                        React.DOM.option( {value:"1.6"}, "1.6"),
+                        React.DOM.option( {value:"1.7"}, "1.7"),
+                        React.DOM.option( {value:"1.8"}, "1.8"),
+                        React.DOM.option( {value:"1.9"}, "1.9"),
+                        React.DOM.option( {value:"2"}, "2")
+                    )
+                )
+            ),
+            React.DOM.div(null, 
+                React.DOM.label(null, 
+                    "語言:",
+                    React.DOM.select( {value:this.state.lang, defaultValue:this.state.lang, onChange:this.langChange}, 
+                        React.DOM.option( {value:"UK English Female"}, "UK English Female"),
+                        React.DOM.option( {value:"UK English Male"}, "UK English Male"),
+                        React.DOM.option( {value:"US English Female"}, "US English Female")
+                    )
+                )
+            )
+        );
+    }
+});
+
+module.exports = {
+    name: "speaking-voice",
+    displayName: "English Text to Speech/英文發音工具",
+    widget: SpeakingVoice,
+    hidden: false,
+    editor: SpeakingVoiceEditor
+};
+
+},{"../../lib/responsivevoice.js":2,"../mixins/changeable.jsx":91,"../mixins/jsonify-props.jsx":92,"react":45}],125:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -23079,7 +23510,7 @@ var TableEditor = React.createClass({displayName: 'TableEditor',
         return React.DOM.div(null, 
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Number of columns:",' ',
+                    ' ',"欄數:",' ',
                     React.DOM.input(
                         {ref:"numberOfColumns",
                         type:"text",
@@ -23090,7 +23521,7 @@ var TableEditor = React.createClass({displayName: 'TableEditor',
             ),
             React.DOM.div(null, 
                 React.DOM.label(null, 
-                    ' ',"Number of rows:",' ',
+                    ' ',"列數:",' ',
                     React.DOM.input(
                         {ref:"numberOfRows",
                         type:"text",
@@ -23100,7 +23531,7 @@ var TableEditor = React.createClass({displayName: 'TableEditor',
                 )
             ),
             React.DOM.div(null, 
-                ' ',"Table of answers type:",' ',
+                ' ',"答案表格:",' ',
                 React.DOM.ul(null, 
                     React.DOM.li(null, 
                         React.DOM.label(null, 
@@ -23108,13 +23539,12 @@ var TableEditor = React.createClass({displayName: 'TableEditor',
                                 {type:"radio",
                                 checked:"checked",
                                 readOnly:true} ),
-                            "Set of values (complete)"
+                            "設定值"
                         ),
                         InfoTip(null, 
-                            React.DOM.p(null, "The student has to fill out all cells in the"+' '+
-                            "table.  For partially filled tables create a table"+' '+
-                            "using the template, and insert text input boxes"+' '+
-                            "as desired.")
+                            React.DOM.p(null, "當表格欄數大於 1 的時候，答案表格中的所有欄位都需有值，也就"+' '+
+                                "是說，學生在作答時需填完所有的欄位，若有不需填完所有欄位的"+' '+
+                                "答案需求時，請再另行增加欄數為 1 的表格進行使用。")
                         )
                     )
                 )
@@ -23231,13 +23661,13 @@ var TableEditor = React.createClass({displayName: 'TableEditor',
 
 module.exports = {
     name: "table",
-    displayName: "Table of values",
+    displayName: "Table of values/表格",
     widget: Table,
     editor: TableEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../editor.jsx":143,"../renderer.jsx":165,"../util.js":168,"react":115,"react-components/info-tip":5}],192:[function(require,module,exports){
+},{"../editor.jsx":75,"../renderer.jsx":97,"../util.js":100,"react":45,"react-components/info-tip":39}],126:[function(require,module,exports){
 /** @jsx React.DOM */
 
 var React = require('react');
@@ -23599,7 +24029,7 @@ var TransformOps = {
 var Transformations = {
     translation: {
         // I18N: As in the command, "Translate the polygon"
-        verbName: $._("Translate"),
+        verbName: $._("平移"),
         nounName: $._("Translation"),
         lowerNounName: $._("translation"),
         apply: function(transform) {
@@ -23629,7 +24059,7 @@ var Transformations = {
         toTeX: function(transform) {
             // I18N: As in the command, "Translation by <3, 1>"
             return $_( {vector:texFromVector(transform.vector)}, 
-                "Translation by %(vector)s"
+                "平移向量 %(vector)s"
             );
         },
         Input: React.createClass({displayName: 'Input',
@@ -23671,7 +24101,7 @@ var Transformations = {
                 ];
                 return React.DOM.div(null, 
                     $_( {vector:vector}, 
-                        "Translation by %(vector)s"
+                        "平移向量 %(vector)s"
                     )
                 );
             },
@@ -23690,7 +24120,7 @@ var Transformations = {
 
     rotation: {
         // I18N: As in the command, "Rotate the polygon"
-        verbName: $._("Rotate"),
+        verbName: $._("旋轉"),
         nounName: $._("Rotation"),
         lowerNounName: $._("rotation"),
         apply: function(transform) {
@@ -23724,7 +24154,7 @@ var Transformations = {
         toTeX: function(transform) {
             return $_( {degrees:texFromAngleDeg(transform.angleDeg),
                        point:texFromPoint(transform.center)}, 
-                "Rotation by %(degrees)s about %(point)s"
+                "旋轉 %(degrees)s 度 (以 %(point)s 為中心)"
             );
         },
         Input: React.createClass({displayName: 'Input',
@@ -23804,7 +24234,7 @@ var Transformations = {
 
     reflection: {
         // I18N: As in the command, "Reflect the polygon"
-        verbName: $._("Reflect"),
+        verbName: $._("鏡射"),
         nounName: $._("Reflection"),
         lowerNounName: $._("reflection"),
         apply: function(transform) {
@@ -23840,7 +24270,7 @@ var Transformations = {
             var point2 = transform.line[1];
             return $_( {point1:texFromPoint(point1),
                        point2:texFromPoint(point2)}, 
-                "Reflection over the line from %(point1)s to %(point2)s"
+                "對應從 %(point1)s 至 %(point2)s 的線做鏡射"
             );
         },
         Input: React.createClass({displayName: 'Input',
@@ -23885,7 +24315,7 @@ var Transformations = {
                 ];
                 return React.DOM.div(null, 
                     $_( {point1:point1, point2:point2}, 
-                        "Reflection over the line from %(point1)s to %(point2)s"
+                        "對應從 %(point1)s 至 %(point2)s 的線做鏡射"
                     )
                 );
             },
@@ -23912,7 +24342,7 @@ var Transformations = {
 
     dilation: {
         // I18N: As in the command, "Dilate the polygon"
-        verbName: $._("Dilate"),
+        verbName: $._("放大"),
         nounName: $._("Dilation"),
         lowerNounName: $._("dilation"),
         apply: function(transform) {
@@ -23947,7 +24377,7 @@ var Transformations = {
             var scaleString = stringFromFraction(transform.scale);
             return $_( {scale:scaleString,
                        point:texFromPoint(transform.center)}, 
-                "Dilation of scale %(scale)s about %(point)s"
+                "放大 %(scale)s 倍 (以 %(point)s 為中心)"
             );
         },
         Input: React.createClass({displayName: 'Input',
@@ -24456,34 +24886,31 @@ var ToolSettings = React.createClass({displayName: 'ToolSettings',
             this.props.name,":",' ',
             " ",
             PropCheckBox(
-                {label:"enabled:",
+                {label:"開啟:",
                 enabled:this.props.settings.enabled,
                 onChange:this.props.onChange} ),
             " ",
             this.props.settings.enabled &&
                 PropCheckBox(
-                    {label:"required:",
+                    {label:"必要:",
                     required:this.props.settings.required,
                     onChange:this.props.onChange} ),
             
             this.props.settings.enabled &&
                 InfoTip(null, 
-                    "'Required' will only grade the answer as correct if the"+' '+
-                    "student has used at least one such transformation."
+                    "勾選\"必要\"表示學生至少要用過此轉換一次。"
                 ),
             
             " ",
             this.props.allowFixed && this.props.settings.enabled &&
                 PropCheckBox(
-                    {label:"fixed:",
+                    {label:"固定:",
                     fixed:this.props.settings.constraints.fixed,
                     onChange:this.changeConstraints} ),
             
             this.props.allowFixed && this.props.settings.enabled &&
                 InfoTip(null, 
-                    "Enable 'fixed' to prevent the student from repositioning"+' '+
-                    "the tool. The tool will appear in the position at which it"+' '+
-                    "is placed in the editor below."
+                    "勾選\"固定\"可防止學生重新定位此工具。"
                 )
             
         );
@@ -24503,61 +24930,54 @@ var TransformationExplorerSettings = React.createClass({displayName: 'Transforma
 
         return React.DOM.div( {className:"transformer-settings"}, 
             React.DOM.div(null, 
-                ' ',"Mode:",' ',
+                ' ',"模式:",' ',
                 React.DOM.select( {value:this.getMode(),
                         onChange:this.changeMode}, 
                     React.DOM.option( {value:"interactive,dynamic"}, 
-                        ' ',"Exploration with text",' '
+                        ' ',"顯示轉換的過程",' '
                     ),
                     React.DOM.option( {value:"interactive,static"}, 
-                        ' ',"Exploration without text",' '
+                        ' ',"不顯示轉換的過程",' '
                     ),
                     React.DOM.option( {value:"dynamic,interactive"}, 
-                        ' ',"Formal with movement",' '
+                        ' ',"指定轉換參數並即時顯示",' '
                     ),
                     React.DOM.option( {value:"static,interactive"}, 
-                        ' ',"Formal without movement",' '
+                        ' ',"指定轉換參數但不即時顯示",' '
                     )
                 ),
                 InfoTip(null, 
                     React.DOM.ul(null, 
                         React.DOM.li(null, 
-                            React.DOM.b(null, "Exploration:"), " Students create"+' '+
-                            "transformations with tools on the graph.",' '
+                            React.DOM.b(null, "指定轉換參數並即時顯示:"), " 學生可自行指定轉換所需參數，"+' '+
+                            "而圖形可即時顯示轉換後的結果。",' '
                         ),
                         React.DOM.li(null, 
-                            React.DOM.b(null, "Formal with movement:"), " Students specify"+' '+
-                            "transformations mathematically in the"+' '+
-                            "transformation list. Graph shows the results of"+' '+
-                            "these transformations.",' '
-                        ),
-                        React.DOM.li(null, 
-                            React.DOM.b(null, "Formal without movement:"), " Students specify"+' '+
-                            "transformations mathematically in the"+' '+
-                            "transformation list. Graph does not update.",' '
+                            React.DOM.b(null, "指定轉換參數但不即時顯示:"), " 學生可自行指定轉換所需參數，"+' '+
+                            "但圖形不即時顯示轉換後的結果。",' '
                         )
                     )
                 )
             ),
             ToolSettings(
-                    {name:"Translations",
+                    {name:"平移",
                     settings:this.props.tools.translation,
                     allowFixed:false,
                     onChange:this.changeHandlerFor("translation")} ),
             ToolSettings(
-                    {name:"Rotations",
+                    {name:"旋轉",
                     settings:this.props.tools.rotation,
                     onChange:this.changeHandlerFor("rotation")} ),
             ToolSettings(
-                    {name:"Reflections",
+                    {name:"鏡射",
                     settings:this.props.tools.reflection,
                     onChange:this.changeHandlerFor("reflection")} ),
             ToolSettings(
-                    {name:"Dilations",
+                    {name:"放大",
                     settings:this.props.tools.dilation,
                     onChange:this.changeHandlerFor("dilation")} ),
             PropCheckBox(
-                    {label:"Draw Solution:",
+                    {label:"畫出答案:",
                     drawSolutionShape:this.props.drawSolutionShape,
                     onChange:this.props.onChange} )
         );
@@ -24608,18 +25028,18 @@ var TransformationsShapeEditor = React.createClass({displayName: 'Transformation
                     {key:"type-select",
                     value:this.getTypeString(this.props.shape.type),
                     onChange:this.changeType} , 
-                React.DOM.option( {value:"polygon-3"}, "Triangle"),
-                React.DOM.option( {value:"polygon-4"}, "Quadrilateral"),
-                React.DOM.option( {value:"polygon-5"}, "Pentagon"),
-                React.DOM.option( {value:"polygon-6"}, "Hexagon"),
-                React.DOM.option( {value:"line"}, "Line"),
-                React.DOM.option( {value:"line,line"}, "2 lines"),
-                React.DOM.option( {value:"lineSegment"}, "Line segment"),
+                React.DOM.option( {value:"polygon-3"}, "三角形"),
+                React.DOM.option( {value:"polygon-4"}, "四邊形"),
+                React.DOM.option( {value:"polygon-5"}, "五邊形"),
+                React.DOM.option( {value:"polygon-6"}, "六邊形"),
+                React.DOM.option( {value:"line"}, "線"),
+                React.DOM.option( {value:"line,line"}, "2 線"),
+                React.DOM.option( {value:"lineSegment"}, "線段"),
                 React.DOM.option( {value:"lineSegment,lineSegment"}, 
-                    ' ',"2 line segments",' '
+                    ' ',"2 線段",' '
                 ),
-                React.DOM.option( {value:"angle"}, "Angle"),
-                React.DOM.option( {value:"circle"}, "Circle")
+                React.DOM.option( {value:"angle"}, "角度"),
+                React.DOM.option( {value:"circle"}, "圓形")
             )
         );
     },
@@ -24779,7 +25199,7 @@ var ToolsBar = React.createClass({displayName: 'ToolsBar',
                     onTouchStart:captureScratchpadTouchStart}, 
                 React.DOM.span( {className:"icon-undo"} ),
                 " ",
-                "Undo"
+                "回復"
             ),
             React.DOM.div( {className:"clear"})
         );
@@ -24825,7 +25245,7 @@ var AddTransformBar = React.createClass({displayName: 'AddTransformBar',
                     onTouchStart:captureScratchpadTouchStart}, 
                 React.DOM.span( {className:"icon-undo"} ),
                 " ",
-                "Undo"
+                "回復"
             ),
             React.DOM.div( {className:"clear"})
         );
@@ -24888,6 +25308,7 @@ var Transformer = React.createClass({displayName: 'Transformer',
                 markings:graph.markings,
                 backgroundImage:graph.backgroundImage,
                 showProtractor:graph.showProtractor,
+                showRuler:graph.showRuler,
                 onNewGraphie:this.setupGraphie} ),
 
             !interactiveToolsMode && (
@@ -25635,7 +26056,7 @@ var TransformerEditor = React.createClass({displayName: 'TransformerEditor',
     // so that we don't have all this duplication
     getDefaultProps: function() {
         return _.defaults({
-            graph: defaultGraphProps(this.props.graph, 340)
+            graph: defaultGraphProps(null, 340)
         }, defaultTransformerProps);
     },
 
@@ -25644,33 +26065,24 @@ var TransformerEditor = React.createClass({displayName: 'TransformerEditor',
         // this can happen because the graph json doesn't include
         // box, for example
         var graph = _.extend(
-                defaultGraphProps(this.props.graph, 340),
+                defaultGraphProps(null, 340),
                 this.props.graph
         );
 
         return React.DOM.div(null, 
             React.DOM.div(null, 
                 PropCheckBox(
-                    {label:"Grade empty answers as wrong:",
+                    {label:"將空的答案視為錯誤:",
                     gradeEmpty:this.props.gradeEmpty,
                     onChange:this.props.onChange} ),
                 InfoTip(null, 
                     React.DOM.p(null, 
-                        "We generally do not grade empty answers. This usually"+' '+
-                        "works well, but sometimes can result in giving away"+' '+
-                        "part of an answer in a multi-part question."
-                    ),
-                    React.DOM.p(null, 
-                        "If this is a multi-part question (there is another"+' '+
-                        "widget), you probably want to enable this option."+' '+
-                        "Otherwise, you should leave it disabled."
-                    ),
-                    React.DOM.p(null, 
-                        "Confused? Talk to Elizabeth."
+                        "基本上我們並不允許答案為空，但在具有多重填答需求的問題中"+' '+
+                        "(另一個 widget)，此功能是需要的。"
                     )
                 )
             ),
-            React.DOM.div(null, "Graph settings:"),
+            React.DOM.div(null, "圖形設定:"),
             GraphSettings(
                 {box:graph.box,
                 labels:graph.labels,
@@ -25681,8 +26093,9 @@ var TransformerEditor = React.createClass({displayName: 'TransformerEditor',
                 backgroundImage:graph.backgroundImage,
                 markings:graph.markings,
                 showProtractor:graph.showProtractor,
+                showRuler:graph.showRuler,
                 onChange:this.changeGraph} ),
-            React.DOM.div(null, "Transformation settings:"),
+            React.DOM.div(null, "變換設定:"),
             TransformationExplorerSettings(
                 {ref:"transformationSettings",
                 graphMode:this.props.graphMode,
@@ -25690,13 +26103,13 @@ var TransformerEditor = React.createClass({displayName: 'TransformerEditor',
                 tools:this.props.tools,
                 drawSolutionShape:this.props.drawSolutionShape,
                 onChange:this.props.onChange} ),
-            React.DOM.div(null, "Starting location:"),
+            React.DOM.div(null, "起始位置:"),
             TransformationsShapeEditor(
                 {ref:"shapeEditor",
                 graph:graph,
                 shape:this.props.starting.shape,
                 onChange:this.changeStarting} ),
-            React.DOM.div(null, "Solution transformations:"),
+            React.DOM.div(null, "答案:"),
             Transformer(
                 {ref:"explorer",
                 graph:graph,
@@ -25752,13 +26165,11 @@ var TransformerEditor = React.createClass({displayName: 'TransformerEditor',
 
 module.exports = {
     name: "transformer",
-    displayName: "Transformer",
+    displayName: "Transformer/圖形變換",
     widget: Transformer,
     editor: TransformerEditor,
-    hidden: true
+    hidden: false
 };
 
-},{"../components/graph-settings.jsx":121,"../components/graph.jsx":122,"../components/number-input.jsx":129,"../components/prop-check-box.jsx":130,"../tex.jsx":167,"../util.js":168,"react":115,"react-components/info-tip":5}]},{},[163])
-(163)
+},{"../components/graph-settings.jsx":53,"../components/graph.jsx":54,"../components/number-input.jsx":61,"../components/prop-check-box.jsx":62,"../tex.jsx":99,"../util.js":100,"react":45,"react-components/info-tip":39}]},{},[95])(95)
 });
-;

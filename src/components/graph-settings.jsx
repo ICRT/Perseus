@@ -9,6 +9,7 @@ var NumberInput = require("../components/number-input.jsx");
 var PropCheckBox = require("../components/prop-check-box.jsx");
 var RangeInput = require("../components/range-input.jsx");
 var Util = require("../util.js");
+var BlurInput = require("react-components/blur-input");
 
 var defaultBoxSize = 400;
 var defaultBackgroundImage = {
@@ -44,7 +45,7 @@ var GraphSettings = React.createClass({
             step: [1, 1],
             gridStep: [1, 1],
             snapStep: Util.snapStepFromGridStep(
-                this.props.gridStep || [1, 1]),
+                this.gridStep || [1, 1]),
             valid: true,
             backgroundImage: defaultBackgroundImage,
             markings: "graph",
@@ -59,14 +60,14 @@ var GraphSettings = React.createClass({
         return <div>
             <div className="graph-settings">
                 <div className="perseus-widget-row">
-                    <div className="perseus-widget-left-col"> x Label
+                    <div className="perseus-widget-left-col"> x軸標籤
                         <input  type="text"
                                 className="graph-settings-axis-label"
                                 ref="labels-0"
                                 onChange={this.changeLabel.bind(this, 0)}
                                 value={this.state.labelsTextbox[0]} />
                     </div>
-                    <div className="perseus-widget-right-col">y Label
+                    <div className="perseus-widget-right-col">y軸標籤
                         <input  type="text"
                                 className="graph-settings-axis-label"
                                 ref="labels-1"
@@ -77,58 +78,53 @@ var GraphSettings = React.createClass({
 
                 <div className="perseus-widget-row">
                     <div className="perseus-widget-left-col">
-                        x Range
+                        x軸範圍
                         <RangeInput value= {this.state.rangeTextbox[0]}
                             onChange = {this.changeRange.bind(this, 0)} />
                     </div>
                     <div className="perseus-widget-right-col">
-                        y Range
+                        y軸範圍
                         <RangeInput value= {this.state.rangeTextbox[1]}
                             onChange = {this.changeRange.bind(this, 1)} />
                     </div>
                 </div>
                 <div className="perseus-widget-row">
                     <div className="perseus-widget-left-col">
-                        Tick Step
+                        座標間距
                         <RangeInput value= {this.state.stepTextbox}
                                     onChange = {this.changeStep} />
                     </div>
                     <div className="perseus-widget-right-col">
-                        Grid Step
+                        網格間距
                         <RangeInput value= {this.state.gridStepTextbox}
                                     onChange = {this.changeGridStep} />
                     </div>
                 </div>
                 <div className="perseus-widget-row">
                     <div className="perseus-widget-left-col">
-                        Snap Step
+                        答案拖拉間距
                         <RangeInput value= {this.state.snapStepTextbox}
                                     onChange = {this.changeSnapStep} />
                     </div>
                 </div>
                 <div className="perseus-widget-row">
-                    <label>Markings:{' '} </label>
+                    <label>標記:{' '} </label>
                     <ButtonGroup value={this.props.markings}
                         allowEmpty={false}
                         buttons={[
-                            {value: "graph", text: "Graph"},
-                            {value: "grid", text: "Grid"},
-                            {value: "none", text: "None"}]}
+                            {value: "graph", text: "座標圖"},
+                            {value: "grid", text: "僅網格"},
+                            {value: "none", text: "無"}]}
                         onChange={this.change("markings")} />
                 </div>
             </div>
             <div className="image-settings">
-                <div>Background image:</div>
+                <div>背景圖:</div>
                 <div>Url:{' '}
-                    <input type="text"
-                            className="graph-settings-background-url"
-                            ref="bg-url"
-                            defaultValue={this.props.backgroundImage.url}
-                            onKeyPress={this.changeBackgroundUrl}
-                            onBlur={this.changeBackgroundUrl} />
+                    <BlurInput  value={this.props.backgroundImage.url}
+                                onChange={this.changeBackgroundUrl}/>
                     <InfoTip>
-                        <p>Create an image in graphie, or use the "Add image"
-                        function to create a background.</p>
+                        <p>請在圖形中增加圖片，或於欄中輸入圖片連結。</p>
                     </InfoTip>
                 </div>
                 {this.props.backgroundImage.url && <div>
@@ -171,25 +167,25 @@ var GraphSettings = React.createClass({
                 {this.props.showRuler && <div>
                     <div>
                         <label>
-                            {' '}Ruler label:{' '}
+                            {' '}直尺單位:{' '}
                             <select
                                 onChange={this.changeRulerLabel}
                                 value={this.props.rulerLabel} >
-                                    <option value="">None</option>
-                                    <optgroup label="Metric">
+                                    <option value="">無</option>
+                                    <optgroup label="公制">
                                         {this.renderLabelChoices([
-                                            ["milimeters", "mm"],
-                                            ["centimeters", "cm"],
-                                            ["meters", "m"],
-                                            ["kilometers", "km"]
+                                            ["公厘", "mm"],
+                                            ["公分", "cm"],
+                                            ["公尺", "m"],
+                                            ["公里", "km"]
                                         ])}
                                     </optgroup>
-                                    <optgroup label="Imperial">
+                                    <optgroup label="英制">
                                         {this.renderLabelChoices([
-                                            ["inches", "in"],
-                                            ["feet", "ft"],
-                                            ["yards", "yd"],
-                                            ["miles", "mi"]
+                                            ["英吋", "in"],
+                                            ["英呎", "ft"],
+                                            ["碼", "yd"],
+                                            ["英里", "mi"]
                                         ])}
                                     </optgroup>
                             </select>
@@ -197,7 +193,7 @@ var GraphSettings = React.createClass({
                     </div>
                     <div>
                         <label>
-                            {' '}Ruler ticks:{' '}
+                            {' '}直尺間隔:{' '}
                             <select
                                 onChange={this.changeRulerTicks}
                                 value={this.props.rulerTicks} >
@@ -402,36 +398,26 @@ var GraphSettings = React.createClass({
         }
     },
 
-    changeBackgroundUrl: function(e) {
-        var self = this;
+    setUrl: function(url, width, height) {
+        var image = _.clone(this.props.backgroundImage);
+        image.url = url;
+        image.width = width;
+        image.height = height;
+        this.props.onChange({
+            backgroundImage: image,
+            markings: url ? "none" : "graph"
+        });
+    },
 
-        // Only continue on blur or "enter"
-        if (e.type === "keypress" && e.keyCode !== 13) {
-            return;
-        }
-
-        var url = self.refs["bg-url"].getDOMNode().value;
-        var setUrl = function() {
-            var image = _.clone(self.props.backgroundImage);
-            image.url = url;
-            image.width = img.width;
-            image.height = img.height;
-            self.props.onChange({
-                backgroundImage: image,
-                markings: url ? "none" : "graph"
-            });
-        };
+    changeBackgroundUrl: function(url) {
         if (url) {
-            var img = new Image();
-            img.onload = setUrl;
-            img.src = url;
+            if(this.props.backgroundImage.url != url){
+                var img = new Image();
+                img.onload = function()  {return this.setUrl(url, img.width, img.height);}.bind(this);
+                img.src = url;
+            }
         } else {
-            var img = {
-                url: url,
-                width: 0,
-                height: 0
-            };
-            setUrl();
+            this.setUrl(url,0,0);
         }
     },
 

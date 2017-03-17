@@ -15,35 +15,35 @@ var toNumericString = KhanUtil.toNumericString;
 
 var answerTypes = {
     number: {
-        name: "Numbers",
+        name: "數字",
         forms: "integer, decimal, proper, improper, mixed"
     },
     decimal: {
-        name: "Decimals",
+        name: "小數",
         forms: "decimal"
     },
     integer: {
-        name: "Integers",
+        name: "整數",
         forms: "integer"
     },
     rational: {
-        name: "Fractions and mixed numbers",
+        name: "分數與帶分數",
         forms: "integer, proper, improper, mixed"
     },
     improper: {
-        name: "Improper numbers (no mixed)",
+        name: "假分數 (不接受帶分數)",
         forms: "integer, proper, improper"
     },
     mixed: {
-        name: "Mixed numbers (no improper)",
+        name: "帶分數 (不接受假分數)",
         forms: "integer, proper, mixed"
     },
     percent: {
-        name: "Numbers or percents",
+        name: "數字或百分數",
         forms: "integer, decimal, proper, improper, mixed, percent"
     },
     pi: {
-        name: "Numbers with pi", forms: "pi"
+        name: "有 \u03C0 的數", forms: "pi"
     }
 };
 
@@ -51,29 +51,29 @@ var formExamples = {
     "integer": function(options) { return $._("an integer, like $6$"); },
     "proper": function(options) {
         if (options.simplify === "optional") {
-            return $._("a *proper* fraction, like $1/2$ or $6/10$");
+            return $._("真分數, 例 $1/2$ or $6/10$");
         } else {
-            return $._("a *simplified proper* fraction, like $3/5$");
+            return $._("最簡真分數, 例 $3/5$");
         }
     },
     "improper": function(options) {
         if (options.simplify === "optional") {
-            return $._("an *improper* fraction, like $10/7$ or $14/8$");
+            return $._("假分數, 例 $10/7$ or $14/8$");
         } else {
-            return $._("a *simplified improper* fraction, like $7/4$");
+            return $._("最簡假分數, 例 $7/4$");
         }
     },
     "mixed": function(options) {
-        return $._("a mixed number, like $1\\ 3/4$");
+        return $._("帶分數, 例 $1\\ 3/4$");
     },
     "decimal": function(options) {
-        return $._("an *exact* decimal, like $0.75$");
+        return $._("精確的小數, 例 $0.75$");
     },
     "percent": function(options) {
         return $._("a percent, like $12.34\\%$");
     },
     "pi": function(options) {
-        return $._("a multiple of pi, like $12\\ \\text{pi}$ or " +
+        return $._("pi 的倍數, 例 $12\\ \\text{pi}$ or " +
                 "$2/3\\ \\text{pi}$");
     }
 };
@@ -155,12 +155,19 @@ var InputNumber = React.createClass({
     },
 
     handleChange: function(newValue) {
-        this.props.onChange({ currentValue: newValue });
+        this.props.onChange({ currentValue: Util.asc(newValue) });
     },
 
     focus: function() {
         this.refs.input.focus();
         return true;
+    },
+
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = {currentValue: ""};
+        }
+        this.props.onChange(answerData);
     },
 
     toJSON: function(skipValidation) {
@@ -256,14 +263,14 @@ var InputNumberEditor = React.createClass({
 
         return <div>
             <div><label>
-                {' '}Correct answer:{' '}
+                {' '}正確答案:{' '}
                 <BlurInput value={"" + this.props.value}
                            onChange={this.handleAnswerChange}
                            ref="input" />
             </label></div>
 
             <div>
-            {' '}Answer type:{' '}
+            {' '}答案類型:{' '}
             <select
                 value={this.props.answerType}
                 onChange={e => {
@@ -272,27 +279,23 @@ var InputNumberEditor = React.createClass({
                 {answerTypeOptions}
             </select>
             <InfoTip>
-                <p>Use the default "Numbers" unless the answer must be in a
-                specific form (e.g., question is about converting decimals to
-                fractions).</p>
+                <p>預設使用「數字」，除非答案需要是一個特定的格式。(例如：將小數轉換成分數的問題)</p>
             </InfoTip>
             </div>
 
             <div>
                 <label>
-                    {' '}Width{' '}
+                    {' '}寬度{' '}
                     <select value={this.props.size}
                             onChange={e => {
                                 this.props.onChange({size: e.target.value});
                             }}>
-                        <option value="normal">Normal (80px)</option>
-                        <option value="small">Small (40px)</option>
+                        <option value="normal">一般 (80px)</option>
+                        <option value="small">較小 (40px)</option>
                     </select>
                 </label>
                 <InfoTip>
-                    <p>Use size "Normal" for all text boxes, unless there are
-                    multiple text boxes in one line and the answer area is too
-                    narrow to fit them.</p>
+                    <p>預設使用一般大小，除非需要很多個答案格在同一行，會出現放不下的情況。</p>
                 </InfoTip>
             </div>
         </div>;

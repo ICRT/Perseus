@@ -30,9 +30,10 @@ var Iframe = React.createClass({
     getDefaultProps: function() {
         return {
             // options: incomplete, incorrect, correct
-            status: "incomplete",
+            status: "correct",
             // optional message
-            message: null
+            message: null,
+            allowFullScreen: true
         };
     },
 
@@ -69,9 +70,8 @@ var Iframe = React.createClass({
         var url = this.props.url;
 
         // If the URL doesnt start with http, it must be a program ID
-        if (url.length && url.indexOf("http") !== 0) {
-            url = "http://khanacademy.org/cs/program/" + url +
-                    "/embedded?buttons=no&embed=yes&editor=no&author=no";
+        if (url && url.length && url.indexOf("http") !== 0) {
+            url = "https://www.youtube.com/embed/" + url;
             // Origin is used by output.js in deciding to send messages
             url = updateQueryString(url, "origin", window.location.origin);
         }
@@ -93,7 +93,8 @@ var Iframe = React.createClass({
         //  creator "went wild".
         // http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
         return <iframe sandbox="allow-same-origin allow-scripts"
-                       style={style} src={url} />;
+                       style={style} src={url} 
+                       allowFullScreen={this.props.allowFullScreen}/>;
     },
 
     simpleValidate: function(rubric) {
@@ -158,11 +159,11 @@ var PairEditor = React.createClass({
 
     render: function() {
         return <fieldset>
-                <label>Name: 
+                <label>名稱: 
                     <BlurInput value={this.props.name}
                            onChange={this.change("name")} />
                 </label>
-                <label>Value:
+                <label>設定值:
                     <BlurInput value={this.props.value}
                            onChange={this.change("value")} />
                 </label>
@@ -218,34 +219,17 @@ var IframeEditor = React.createClass({
         return {
             url: "",
             settings: [{name: "", value: ""}],
-            width: 400,
-            height: 400
+            width: 560,
+            height: 320
         };
     },
 
     render: function() {
         return <div>
-            <label>Url or Program ID:
+            <label>網址 Url:
                 <BlurInput name="url"
                            value={this.props.url}
                            onChange={this.change("url")} />
-            </label>
-            <br/>
-            <label>Settings:
-                <PairsEditor name="settings"
-                           pairs={this.props.settings}
-                           onChange={this.handleSettingsChange} />
-            </label>
-            <br/>
-            <label>Width: 
-                <BlurInput name="width"
-                           value={this.props.width}
-                           onChange={this.change("width")} />
-            </label>
-            <label>Height: 
-                <BlurInput name="height"
-                           value={this.props.height}
-                           onChange={this.change("height")} />
             </label>
         </div>;
     },
@@ -258,9 +242,9 @@ var IframeEditor = React.createClass({
 
 module.exports = {
     name: "iframe",
-    displayName: "Iframe",
+    displayName: "Iframe/外掛套件",
     widget: Iframe,
     // Let's not expose it to all content creators yet
-    hidden: true,
+    hidden: false,
     editor: IframeEditor
 };

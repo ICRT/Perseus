@@ -16,6 +16,7 @@ var defaultBackgroundImage = {
     width: 0,
     height: 0
 };
+var maxImageSize = 480;
 
 /**
  * Alignment option for captions, relative to specified coordinates.
@@ -61,7 +62,8 @@ var ImageWidget = React.createClass({
                 coordinates: React.PropTypes.arrayOf(React.PropTypes.number),
                 alignment: React.PropTypes.string
             })
-        )
+        ),
+        allowScratchpad: React.PropTypes.bool
     },
 
     getDefaultProps: function() {
@@ -69,7 +71,8 @@ var ImageWidget = React.createClass({
             range: [defaultRange, defaultRange],
             box: [defaultBoxSize, defaultBoxSize],
             backgroundImage: defaultBackgroundImage,
-            labels: []
+            labels: [],
+            allowScratchpad: true
         };
     },
 
@@ -98,7 +101,8 @@ var ImageWidget = React.createClass({
                 box={this.props.box}
                 range={this.props.range}
                 options={_.pick(this.props, "box", "range", "labels")}
-                setup={this.setupGraphie}>
+                setup={this.setupGraphie}
+                allowScratchpad={this.props.allowScratchpad}>
             </Graphie>
         </div>;
     },
@@ -152,19 +156,19 @@ var ImageEditor = React.createClass({
 
     render: function() {
         var imageSettings = <div className="image-settings">
-            <div>Url:{' '}
+            <div>圖片網址:{' '}
                 <BlurInput value={this.props.backgroundImage.url}
                            onChange={this.onUrlChange} />
                 <InfoTip>
-                    <p>填入圖片的網址</p>
+                    <p>填入圖片的網址。例如，先上傳至 http://imgur.com ，貼上圖片網址 (Direct link)。</p>
                 </InfoTip>
             </div>
             <label>
                 <input type="checkbox"
                         checked={this.props.useBoxSize}
-                        onChange={this.toggleUseBoxSize} />手動調整寬度
+                        onChange={this.toggleUseBoxSize} />手動調整寬度，寬度上限480
             </label>
-            <div>Width:{' '}
+            <div>寬度:{' '}
                 <BlurInput value={parseInt(this.props.box[0])}
                            onChange={this.onWidthChange} />
                 <InfoTip>
@@ -264,7 +268,7 @@ var ImageEditor = React.createClass({
         var image = _.clone(this.props.backgroundImage);
         if (this.props.useBoxSize) {
             var w_h_ratio = image.height / image.width;
-            image.width = parseInt(newAlignment);
+            image.width = parseInt(newAlignment) > maxImageSize ? maxImageSize:parseInt(newAlignment);
             image.height = Math.round(image.width * w_h_ratio);
         }
         var box = [image.width, image.height];
@@ -322,7 +326,7 @@ var ImageEditor = React.createClass({
 
 module.exports = {
     name: "image",
-    displayName: "Image",
+    displayName: "Image/圖片",
     widget: ImageWidget,
     editor: ImageEditor
 };

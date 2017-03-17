@@ -86,7 +86,7 @@
     }
 
     div.paragraph {
-        font-size: 14px;
+        font-size: 20px;
         margin: 22px 0px;
     }
 
@@ -97,20 +97,21 @@
     }
 
     .paragraph > ul:not(.perseus-widget-radio) {
-        font-size: 14px;
+        font-size: 20px;
         margin: -11px 0px 22px 0px;
         padding-left: 35px;
     }
 
     .paragraph > ul:not(.perseus-widget-radio) > li {
         list-style-type: disc;
+        line-height: 1.5;
     }
 
     table {
-        font-size: 14px;  // to match <p>
+        font-size: 20px;  // for content-end required
 
         th, td {
-            padding: 5px 10px;
+            padding: 5px 20px;
             text-align: left;
 
             &[align=center] {
@@ -206,6 +207,11 @@
     .image-settings, .misc-settings, .type-settings {
         border-top: 1px solid black;
         padding-top: 5px;
+    }
+
+    div #solutionarea div.paragraph {
+        font-size: inherit;
+        margin: 0px;
     }
 }
 
@@ -343,6 +349,8 @@
 }
 
 .perseus-widget-container {
+    font-size: 14px;
+
     &.widget-nohighlight {
         transition: all 0.15s;
     }
@@ -394,6 +402,10 @@
     // Make the click target easier to hit
     min-width: 100px;
 
+    // Make it above scratchpad
+    position: relative;
+    z-index: 3;
+
     & > .mq-root-block {
         // Mimic native text input w/o using -moz/-webkit-apperance: textfield
         // border-color: rgb(78, 187, 212);
@@ -433,14 +445,14 @@
     box-sizing: border-box;
     margin-top: 5px;
     padding: 2px;
-    // each button is 35 + 4 px, plus 4 padding, plus 2 border
-    width: 39px*5 + 4px + 2px; // (201)
+    width: 280px;
 
     &.absolute {
         left: -2px;
         position: absolute;
         top: -3px;
         z-index: @zIndexCalculator;
+        width: 360px;
     }
 };
 
@@ -450,8 +462,8 @@
 .tex-button {
     display: block;
     float: left;
-    width: 35px;
-    height: 35px;
+    width: 41px;
+    height: 41px;
     margin: 2px;
     border: 1px solid @borderColor;
     background-color: white;

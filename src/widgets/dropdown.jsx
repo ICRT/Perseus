@@ -27,7 +27,9 @@ var Dropdown = React.createClass({
             apiOptions: ApiOptions.defaults
         };
     },
-
+    setAnswerFromJSON: function(answerData) {
+        this.props.onChange({selected:answerData.value});
+    },
     render: function() {
         var choices = this.props.choices.slice();
 
@@ -50,11 +52,15 @@ var Dropdown = React.createClass({
             </FancySelect>;
 
         } else {
+            var style = {
+                fontSize: "120%"
+            };
             return <select
                         onChange={this._handleChangeEvent}
                         onTouchStart={captureScratchpadTouchStart}
                         className="perseus-widget-dropdown"
-                        value={this.props.selected}>
+                        value={this.props.selected}
+                        style={style}>
                 <option value={0} disabled>
                     {this.props.placeholder}
                 </option>
@@ -139,24 +145,19 @@ var DropdownEditor = React.createClass({
     render: function() {
         var dropdownGroupName = _.uniqueId("perseus_dropdown_");
         return <div className="perseus-widget-dropdown">
-            <div>Dropdown
+            <div>下拉式選單
                 <InfoTip>
-                    <p>The drop down is useful for making inequalities in a
-                    custom format. We normally use the symbols {"<"}, {">"},
-                    ≤, ≥ (in that order) which you can copy into the
-                    choices. When possible, use the "multiple choice" answer
-                    type instead.</p>
+                    <p>短敘述的單選題。例如： {"<"}, {">"},
+                    ≤, ≥ </p>
                 </InfoTip>
             </div>
             <input
                 type="text"
-                placeholder="Placeholder value"
+                placeholder="預設值"
                 value={this.props.placeholder}
                 onChange={this.onPlaceholderChange} />
             <InfoTip>
-                <p>This value will appear as the drop down default. It should
-                give the user some indication of the values available in the
-                drop down itself, e.g., Yes/No/Maybe.</p>
+                <p>這會顯示為下拉式選單的預設值，可以給使用者一些下拉式選單可能答案的指示。例如：是/不是/可能是。</p>
             </InfoTip>
             <ul>
                 {this.props.choices.map(function(choice, i) {
@@ -187,7 +188,7 @@ var DropdownEditor = React.createClass({
                 <a href="#" className="simple-button orange"
                         onClick={this.addChoice}>
                     <span className="icon-plus" />
-                    {' '}Add a choice{' '}
+                    {' '}增加選項{' '}
                 </a>
             </div>
         </div>;
@@ -249,9 +250,9 @@ var propTransform = (editorProps) => {
 
 module.exports = {
     name: "dropdown",
-    displayName: "Drop down",
+    displayName: "Drop down/下拉式選單",
     widget: Dropdown,
     editor: DropdownEditor,
     transform: propTransform,
-    hidden: true
+    hidden: false
 };

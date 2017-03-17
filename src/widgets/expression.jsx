@@ -18,12 +18,13 @@ var TexButtons        = require("../components/tex-buttons.jsx");
 
 var cx = React.addons.classSet;
 var EnabledFeatures = require("../enabled-features.jsx");
+var Util = require("../util.js");
 
 var ERROR_MESSAGE = $._("Sorry, I don't understand that!");
 
 // The new, MathQuill input expression widget
 var Expression = React.createClass({
-    mixins: [Changeable, JsonifyProps],
+    mixins: [Changeable],
 
     propTypes: {
         value: React.PropTypes.string,
@@ -31,7 +32,9 @@ var Expression = React.createClass({
         functions: React.PropTypes.arrayOf(React.PropTypes.string),
         buttonsVisible: React.PropTypes.oneOf(['always', 'never', 'focused']),
         enabledFeatures: EnabledFeatures.propTypes,
-        apiOptions: ApiOptions.propTypes
+        apiOptions: ApiOptions.propTypes,
+        buttonSets: TexButtons.buttonSetsType,
+        easybuttons: React.PropTypes.bool,
     },
 
     getDefaultProps: function() {
@@ -42,14 +45,15 @@ var Expression = React.createClass({
             onFocus: function() { },
             onBlur: function() { },
             enabledFeatures: EnabledFeatures.defaults,
-            apiOptions: ApiOptions.defaults
+            apiOptions: ApiOptions.defaults,
         };
     },
 
     getInitialState: function() {
         return {
             showErrorTooltip: false,
-            showErrorText: false
+            showErrorText: false,
+            offsetLeft: 0
         };
     },
 
@@ -63,7 +67,24 @@ var Expression = React.createClass({
         return KAS.parse(value, options);
     },
 
+    componentDidMount: function() {
+        var expression = this.getDOMNode();
+        this.setState({offsetLeft: expression.offsetLeft});
+    },
+
     render: function() {
+        // for old questions without buttonSets, make buttonSets by easybuttons
+        if (!this.props.buttonSets)
+        {
+            if(!this.props.easybuttons) {
+                this.props.buttonSets = ["basic", "relations", "trig", "prealgebra"];
+            }
+            else {
+                this.props.buttonSets = ["basic"];
+            }
+            this.props.onChange;
+        }
+
         if (this.props.apiOptions.staticRender) {
             var style = {
                 borderRadius: "5px",
@@ -113,18 +134,27 @@ var Expression = React.createClass({
                 "show-error-tooltip": this.state.showErrorTooltip
             });
 
+            var inEditor = window.location.pathname.indexOf("/questionpanel/perseus_editor/") >= 0;
+
             return <span className={className}>
                 <MathInput
                     ref="input"
                     value={this.props.value}
-                    onChange={this.change("value")}
+                    onChange={this.handleChange}
                     convertDotToTimes={this.props.times}
                     buttonsVisible={this.props.buttonsVisible || "focused"}
+                    buttonSets={this.props.buttonSets}
                     onFocus={this._handleFocus}
-                    onBlur={this._handleBlur} />
+                    onBlur={this._handleBlur}
+                    offsetLeft={this.state.offsetLeft}
+                    inEditor={inEditor} />
                 {this.state.showErrorTooltip && errorTooltip}
             </span>;
         }
+    },
+    
+    handleChange: function(newValue) {
+        this.props.onChange({ value: Util.asc(newValue) });
     },
 
     _handleFocus: function() {
@@ -188,6 +218,17 @@ var Expression = React.createClass({
         return Expression.validate(this.toJSON(), rubric, onInputError);
     },
 
+    setAnswerFromJSON: function(answerData) {
+        if (answerData === undefined) {
+            answerData = {value: ""};
+        }
+        this.props.onChange(answerData);
+    },
+
+    toJSON: function(skipValidation) {
+        return {value: this.props.value};
+    },
+
     statics: {
         displayMode: "inline-block"
     }
@@ -231,282 +272,7 @@ _.extend(Expression, {
     }
 });
 
-// The old, plain-text input expression widget
-var OldExpression = React.createClass({
-    propTypes: {
-        value: React.PropTypes.string,
-        times: React.PropTypes.bool,
-        functions: React.PropTypes.arrayOf(React.PropTypes.string),
-        enabledFeatures: EnabledFeatures.propTypes
-    },
 
-    getDefaultProps: function() {
-        return {
-            value: "",
-            times: false,
-            functions: [],
-            onFocus: function() { },
-            onBlur: function() { },
-            enabledFeatures: EnabledFeatures.defaults,
-            apiOptions: ApiOptions.defaults
-        };
-    },
-
-    getInitialState: function() {
-        return {
-            lastParsedTex: ""
-        };
-    },
-
-    parse: function(value, props) {
-        // TODO(jack): Disable icu for content creators here, or
-        // make it so that solution answers with ','s or '.'s work
-        var options = _.pick(props || this.props, "functions");
-        if (icu && icu.getDecimalFormatSymbols) {
-            _.extend(options, icu.getDecimalFormatSymbols());
-        }
-        return KAS.parse(value, options);
-    },
-
-    componentWillMount: function() {
-        this.updateParsedTex(this.props.value);
-    },
-
-    componentWillReceiveProps: function(nextProps) {
-        this.updateParsedTex(nextProps.value, nextProps);
-    },
-
-    render: function() {
-        var result = this.parse(this.props.value);
-        var shouldShowExamples = this.props.enabledFeatures.toolTipFormats;
-
-        return <span className="perseus-widget-expression-old">
-            <InputWithExamples
-                    ref="input"
-                    value={this.props.value}
-                    onKeyDown={this.handleKeyDown}
-                    onKeyPress={this.handleKeyPress}
-                    onChange={this.handleChange}
-                    examples={this.examples()}
-                    shouldShowExamples={shouldShowExamples}
-                    interceptFocus={this._getInterceptFocus()}
-                    onFocus={this._handleFocus}
-                    onBlur={this._handleBlur} />
-            <span className="output">
-                <span className="tex"
-                        style={{opacity: result.parsed ? 1.0 : 0.5}}>
-                    <TeX>{this.state.lastParsedTex}</TeX>
-                </span>
-                <span className="placeholder">
-                    <span ref="error" className="error"
-                            style={{display: "none"}}>
-                        <span className="buddy" />
-                        <span className="message"><span>
-                            {ERROR_MESSAGE}
-                        </span></span>
-                    </span>
-                </span>
-            </span>
-        </span>;
-    },
-
-    _handleFocus: function() {
-        this.props.onFocus([], this.refs.input.getInputDOMNode());
-    },
-
-    _handleBlur: function() {
-        this.props.onBlur([], this.refs.input.getInputDOMNode());
-    },
-
-    _getInterceptFocus: function() {
-        return this.props.apiOptions.interceptInputFocus ?
-                this._interceptFocus : null;
-    },
-
-    _interceptFocus: function() {
-        var interceptProp = this.props.apiOptions.interceptInputFocus;
-        if (interceptProp) {
-            return interceptProp(
-                this.props.widgetId,
-                this.refs.input.getInputDOMNode()
-            );
-        }
-    },
-
-    errorTimeout: null,
-
-    componentDidMount: function() {
-        this.componentDidUpdate();
-    },
-
-    componentDidUpdate: function() {
-        clearTimeout(this.errorTimeout);
-        if (this.parse(this.props.value).parsed) {
-            this.hideError();
-        } else {
-            this.errorTimeout = setTimeout(this.showError, 2000);
-        }
-    },
-
-    componentWillUnmount: function() {
-        clearTimeout(this.errorTimeout);
-    },
-
-    showError: function() {
-        var apiResult = this.props.apiOptions.onInputError(
-            null, // reserved for some widget identifier
-            this.props.value,
-            ERROR_MESSAGE
-        );
-        if (apiResult !== false) {
-            var $error = $(this.refs.error.getDOMNode());
-            if (!$error.is(":visible")) {
-                $error.css({ top: 50, opacity: 0.1 }).show()
-                    .animate({ top: 0, opacity: 1.0 }, 300);
-            }
-        } else {
-            this.hideError();
-        }
-    },
-
-    hideError: function() {
-        var $error = $(this.refs.error.getDOMNode());
-        if ($error.is(":visible")) {
-            $error.animate({ top: 50, opacity: 0.1 }, 300, function() {
-                $(this).hide();
-            });
-        }
-    },
-
-    /**
-     * The keydown handler handles clearing the error timeout, telling
-     * props.value to update, and intercepting the backspace key when
-     * appropriate...
-     */
-    handleKeyDown: function(event) {
-        var input = this.refs.input.getDOMNode();
-        var text = input.value;
-
-        var start = input.selectionStart;
-        var end = input.selectionEnd;
-        var supported = start !== undefined;
-
-        var which = event.nativeEvent.keyCode;
-
-        if (supported && which === 8 /* backspace */) {
-            if (start === end && text.slice(start - 1, start + 1) === "()") {
-                event.preventDefault();
-                var val = text.slice(0, start - 1) + text.slice(start + 1);
-
-                // this.props.onChange will update the value for us, but
-                // asynchronously, making it harder to set the selection
-                // usefully, so we just set .value directly here as well.
-                input.value = val;
-                input.selectionStart = start - 1;
-                input.selectionEnd = end - 1;
-                this.props.onChange({value: val});
-            }
-        }
-    },
-
-    /**
-     * ...whereas the keypress handler handles the parentheses because keyCode
-     * is more useful for actual character insertions (keypress gives 40 for an
-     * open paren '(' instead of keydown which gives 57, the code for '9').
-     */
-    handleKeyPress: function(event) {
-        var input = this.refs.input.getDOMNode();
-        var text = input.value;
-
-        var start = input.selectionStart;
-        var end = input.selectionEnd;
-        var supported = start !== undefined;
-
-        var which = event.nativeEvent.charCode;
-
-        if (supported && which === 40 /* left paren */) {
-            event.preventDefault();
-
-            var val;
-            if (start === end) {
-                var insertMatched = _.any([" ", ")", ""], function(val) {
-                    return text.charAt(start) === val;
-                });
-
-                val = text.slice(0, start) +
-                        (insertMatched ? "()" : "(") + text.slice(end);
-            } else {
-                val = text.slice(0, start) +
-                        "(" + text.slice(start, end) + ")" + text.slice(end);
-            }
-
-            input.value = val;
-            input.selectionStart = start + 1;
-            input.selectionEnd = end + 1;
-            this.props.onChange({value: val});
-
-        } else if (supported && which === 41 /* right paren */) {
-            if (start === end && text.charAt(start) === ")") {
-                event.preventDefault();
-                input.selectionStart = start + 1;
-                input.selectionEnd = end + 1;
-            }
-        }
-    },
-
-    handleChange: function(newValue) {
-        this.props.onChange({value: newValue});
-    },
-
-    focus: function() {
-        this.refs.input.focus();
-        return true;
-    },
-
-    toJSON: function(skipValidation) {
-        return {value: this.props.value};
-    },
-
-    updateParsedTex: function(value, props) {
-        var result = this.parse(value, props);
-        var options = _.pick(this.props, "times");
-        if (result.parsed) {
-            this.setState({lastParsedTex: result.expr.asTex(options)});
-        }
-    },
-
-    simpleValidate: function(rubric, onInputError) {
-        onInputError = onInputError || function() { };
-        return Expression.validate(this.toJSON(), rubric, onInputError);
-    },
-
-    examples: function() {
-        var mult = $._("For $2\\cdot2$, enter **2*2**");
-        if (this.props.times) {
-            mult = mult.replace(/\\cdot/g, "\\times");
-        }
-
-        return [
-            $._("**Acceptable Formats**"),
-            mult,
-            $._("For $3y$, enter **3y** or **3*y**"),
-            $._("For $\\dfrac{1}{x}$, enter **1/x**"),
-            $._("For $\\dfrac{1}{xy}$, enter **1/(xy)**"),
-            $._("For $\\dfrac{2}{x + 3}$, enter **2/(x + 3)**"),
-            $._("For $x^{y}$, enter **x^y**"),
-            $._("For $x^{2/3}$, enter **x^(2/3)**"),
-            $._("For $\\sqrt{x}$, enter **sqrt(x)**"),
-            $._("For $\\pi$, enter **pi**"),
-            $._("For $\\sin \\theta$, enter **sin(theta)**"),
-            $._("For $\\le$ or $\\ge$, enter **<=** or **>=**"),
-            $._("For $\\neq$, enter **=/=**")
-        ];
-    },
-
-    statics: {
-        displayMode: "block"
-    }
-});
 
 var ExpressionEditor = React.createClass({
     mixins: [Changeable, JsonifyProps],
@@ -516,16 +282,19 @@ var ExpressionEditor = React.createClass({
         form: React.PropTypes.bool,
         simplify: React.PropTypes.bool,
         times: React.PropTypes.bool,
-        functions: React.PropTypes.arrayOf(React.PropTypes.string)
+        functions: React.PropTypes.arrayOf(React.PropTypes.string),
+        buttonSets: TexButtons.buttonSetsType,
+        easybuttons: React.PropTypes.bool
     },
 
     getDefaultProps: function() {
         return {
             value: "",
-            form: false,
+            form: true,
             simplify: false,
-            times: false,
-            functions: ["f", "g", "h"]
+            times: true,
+            functions: ["f", "g", "h"],
+            easybuttons: true
         };
     },
 
@@ -533,15 +302,25 @@ var ExpressionEditor = React.createClass({
         var value = this.props.value;
 
         return {
-            // Is the format of `value` TeX or plain text?
-            // TODO(alex): Remove after backfilling everything to TeX
-            isTex: value === "" ||                  // default to TeX if new;
-                _.indexOf(value, "\\") !== -1 ||    // only TeX has backslashes
-                _.indexOf(value, "{") !== -1        // and curly braces
+            // In Junyi, all expressions are new expression widget, not oldExpression widget.
+            // So isTeX default is true.
+            isTex: true
         };
     },
 
     render: function() {
+        // for editing old questions, make buttonSets by easybuttons
+        if (!this.props.buttonSets)
+        {
+            if(!this.props.easybuttons) {
+                this.props.buttonSets = ["basic", "relations", "trig", "prealgebra"];
+            }
+            else {
+                this.props.buttonSets = ["basic"];
+            }
+            this.props.onChange;
+        }
+
         var simplifyWarning = null;
         var shouldTryToParse = this.props.simplify && this.props.value !== "";
         if (shouldTryToParse) {
@@ -562,32 +341,73 @@ var ExpressionEditor = React.createClass({
             times: this.props.times,
             functions: this.props.functions,
             onChange: (newProps) => this.change(newProps),
-            buttonsVisible: "never"
+            buttonsVisible: "never",
+            buttonSets: this.props.buttonSets,
         };
 
         var expression = this.state.isTex ? Expression : OldExpression;
+
+        // checkboxes to choose which sets of input buttons are shown
+        var buttonSetChoices = _(TexButtons.buttonSets).map((set, name) => {
+            // The first one gets special cased to always be checked, disabled,
+            // and float left.
+            var isFirst = name === "basic";
+            var checked = _.contains(this.props.buttonSets, name) || isFirst;
+            var className = isFirst ?
+                "button-set-label-float" :
+                "button-set-label";
+
+            var chineseName = "";
+            switch (name){
+                case "basic":
+                    chineseName = "基本運算";
+                    break;
+                case "relations":
+                    chineseName = "不等式";
+                    break;
+                case "trig":
+                    chineseName = "三角函數";
+                    break;
+                case "prealgebra":
+                    chineseName = "初階代數";
+                    break;
+                default:
+                    chineseName = "其他";
+            };
+
+            return <div> 
+             <label className={className} key={name}>
+                <input type="checkbox"
+                       checked={checked}
+                       disabled={isFirst}
+                       onChange={() => this.handleButtonSet(name)} />
+                {chineseName}
+            </label>
+            </div>;
+        });
 
         // TODO(joel) - move buttons outside of the label so they don't weirdly
         // focus
         return <div>
             <div><label>
-                Correct answer:{' '}
+                正確答案:{' '}
                 {expression(expressionProps)}
             </label></div>
             {this.state.isTex && <TexButtons
                 className="math-input-buttons"
                 convertDotToTimes={this.props.times}
-                onInsert={this.handleTexInsert} />}
+                onInsert={this.handleTexInsert}
+                sets={this.props.buttonSets} />}
 
             <div>
                 <PropCheckBox
                     form={this.props.form}
                     onChange={this.props.onChange}
                     labelAlignment="right"
-                    label="Answer expression must have the same form." />
+                    label="答案一定要與格式相符。" />
                 <InfoTip>
-                    <p>The student's answer must be in the same form.
-                    Commutativity and excess negative signs are ignored.</p>
+                    <p>學生必須輸入相同的算式。
+                    但容許交換律與負號，例如：1+3，可接受3+1或1-(-3)，但不能接受4或2+2。</p>
                 </InfoTip>
             </div>
 
@@ -596,13 +416,12 @@ var ExpressionEditor = React.createClass({
                     simplify={this.props.simplify}
                     onChange={this.props.onChange}
                     labelAlignment="right"
-                    label="Answer expression must be fully expanded and
-                        simplified." />
+                    label="答案一定要化簡、展開。" />
                 <InfoTip>
-                    <p>The student's answer must be fully expanded and
-                    simplified. Answering this equation (x^2+2x+1) with this
+                    <p>答案一定要化簡或展開，例如方程式 (x^2+2x+1) ，如果輸入
+                    (x+1)^2 就會算不對，並且提示學生：
                     factored equation (x+1)^2 will render this response
-                    "Your answer is not fully expanded and simplified."</p>
+                    "你的答案還沒化簡或展開"。</p>
                 </InfoTip>
             </div>
 
@@ -613,26 +432,26 @@ var ExpressionEditor = React.createClass({
                     times={this.props.times}
                     onChange={this.props.onChange}
                     labelAlignment="right"
-                    label="Use × for rendering multiplication instead of a
-                        center dot." />
+                    label="用 × 表示乘號。" />
                 <InfoTip>
-                    <p>For pre-algebra problems this option displays
-                    multiplication as \times instead of \cdot in both the
-                    rendered output and the acceptable formats examples.</p>
+                    <p>算術問題使用 × 表示乘法，代數問題用・表示乘法。</p>
                 </InfoTip>
             </div>
 
             <div>
+                <div>運算符號選擇:</div>
+                {buttonSetChoices}
+            </div>
+
+            <div>
                 <label>
-                {"Function variables: "}
+                {"函數名稱: "}
                 <input type="text"
                     defaultValue={this.props.functions.join(" ")}
                     onChange={this.handleFunctions} />
                 </label>
                 <InfoTip><p>
-                    Single-letter variables listed here will be
-                    interpreted as functions. This let us know that f(x) means
-                    "f of x" and not "f times x".
+                    列在此處的變數為函數名稱，當我們使用 f(x)，會把它解讀成函數，而不是解釋成 f 乘以 x 。
                 </p></InfoTip>
             </div>
 
@@ -641,6 +460,25 @@ var ExpressionEditor = React.createClass({
 
     handleTexInsert: function(str) {
         this.refs.expression.insert(str);
+    },
+
+    // called when the selected buttonset changes
+    handleButtonSet: function(changingName) {
+        var buttonSetNames = _(TexButtons.buttonSets).keys();
+
+        // Filter to preserve order - using .union and .difference would always
+        // move the last added button set to the end.
+        // Because filter by buttonSetNames, the order can be keep
+        var buttonSets = _(buttonSetNames).filter(set => {
+            // if set in original buttonSets & set is changingName => false
+            // if set in original buttonSets & set is not changingName => true
+            // if set not in original buttonSets & set is changingName => true
+            // if set not in original buttonSets & set is not changingName => false
+            return _(this.props.buttonSets).contains(set) !==
+                   (set === changingName);
+        });
+
+        this.props.onChange({ buttonSets });
     },
 
     handleFunctions: function(e) {
@@ -657,14 +495,14 @@ var ExpressionEditor = React.createClass({
 
 module.exports = {
     name: "expression",
-    displayName: "Expression / Equation",
+    displayName: "Expression/數學式",
     getWidget: (enabledFeatures) => {
         // Allow toggling between the two versions of the widget
         return enabledFeatures.useMathQuill ? Expression : OldExpression;
     },
     editor: ExpressionEditor,
     transform: (editorProps) => {
-        return _.pick(editorProps, "times", "functions");
+        return _.pick(editorProps, "times", "functions", "buttonSets", "easybuttons");
     },
-    hidden: true
+    hidden: false
 };
