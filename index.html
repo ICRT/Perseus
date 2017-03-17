@@ -5,51 +5,79 @@
 <meta charset="utf-8">
 <title>Perseus</title>
 
-<link rel="stylesheet" type="text/css" href="ke/css/khan-site.css" />
-<link rel="stylesheet" type="text/css" href="ke/css/khan-exercise.css" />
-<link rel="stylesheet" type="text/css" href="lib/katex/fonts/fonts.css" />
-<link rel="stylesheet/less" type="text/css" href="lib/katex/katex.less" />
-<link rel="stylesheet" type="text/css" href="lib/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="lib/mathquill/mathquill.css" />
+<link rel="stylesheet" type="text/css" href="/ke/css/khan-site.css" />
+<link rel="stylesheet" type="text/css" href="/ke/css/khan-exercise.css" />
+<!-- css_package("perseus") begin -->
+<link rel="stylesheet" type="text/css" href="/javascript/perseus-package/lib/katex/fonts/fonts.css" />
+<link rel="stylesheet" type="text/css" href="/javascript/perseus-package/lib/font-awesome.min.css"/>
+<link rel="stylesheet" type="text/css" href="build/perseus-1.css"/>
+<link rel="stylesheet" type="text/css" href="stylesheets/perseus-admin-package/editor.less.css"/>
+<link rel="stylesheet" type="text/css" href="lib/katex/katex.less.css"/>
+<link rel="stylesheet" type="text/css" href="lib/mathquill/mathquill.css"/>
+<!-- css_package("perseus") end -->
+<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+<script src="/ke/local-only/jquery.js"></script>
+<script src="/ke/local-only/jquery.qtip.js"></script>
+<script src="/ke/local-only/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/ke/css/bootstrap.min.css" />
+<style type="text/css">
+    .perseus-editor-icon{
+      width: 150px;
+      height: 50px;
+      border: 3px solid black;
+      border-radius: 25px;
+      text-align: center;
+      line-height: 45px;
+      font-size: 25px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
 
-<link rel="stylesheet/less" type="text/css" href="stylesheets/exercise-content-package/perseus.less" />
-<link rel="stylesheet/less" type="text/css" href="stylesheets/perseus-admin-package/editor.less" />
-<script>less = {env: 'development', logLevel: 1};</script>
-<script src="lib/less.js"></script>
+    .perseus-editor-icon:hover {
+      border: #99ac29 3px solid;
+    }
 
+    .perseus-editor-icon:active {
+      border: #99ac29 3px solid;
+      background: #99ac29;
+      color: white;
+    }
+
+    .disabled-perseus-editor-icon{
+      width: 150px;
+      height: 50px;
+      border: 3px solid gray;
+      border-radius: 25px;
+      text-align: center;
+      line-height: 45px;
+      font-size: 25px;
+      margin-top: 10px;
+      cursor: default;
+      color: gray;
+    }
+
+    #save-button-collector > a {
+      color: black;
+    }
+</style>
 </head>
 <body>
-
-<div id="extras">
-    <button id="toJSON">toJSON</button>
-    <button id="scorePreview">Score</button>
-    <button id="permalink">permalink</button>
-    <span>Seed:</span><span id="problemNum"></span>
-    <span>Features:</span><span id="enabledFeatures"></span>
-</div>
 
 <!-- Begin Perseus HTML -->
 <div id="perseus-container">
 </div>
-<!-- End Perseus HTML -->
 
+<!-- End Perseus HTML -->
 <!-- put an empty div here so the margin on the perseus editor has something
 to "push against" (without the div, the padding goes off the page, and the
 add hint button ends up touching the bottom of the page). -->
 <div class="clear"></div>
 
-<script src="lib/jquery.js"></script>
-<script src="lib/underscore.js"></script>
-<script src="lib/marked.js"></script>
-<script src="lib/react-with-addons.js"></script>
-<script src="lib/rcss.js"></script>
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full&amp;delayStartupUntil=configured"></script>
-<script src="lib/katex/katex.js"></script>
-<script src="lib/mathquill/mathquill.js"></script>
-<script src="lib/kas.js"></script>
+<script src="/ke/local-only/underscore.js"></script>
+<script src="/ke/utils/MathJax/2.1/MathJax.js?config=KAthJax-da9a7f53e588f3837b045a600e1dc440"></script>
 
 <script>
-    var icu = {
+    window.icu = {
         getDecimalFormatSymbols: function() {
             return {
                 decimal_separator: ".",
@@ -58,23 +86,68 @@ add hint button ends up touching the bottom of the page). -->
             };
         }
     };
-    var KhanUtil = {
+    window.KhanUtil = {
         debugLog: function() {},
         localeToFixed: function(num, precision) {
             return num.toFixed(precision);
         }
     };
-    var Khan = {
+    window.Khan = {
         Util: KhanUtil,
         error: function() {},
         query: {debug: ""},
-        imageBase: "/ke/images/",
+        imageBase: "/khan-exercise/images/",
         scratchpad: {
             enable: function() {},
             disable: function() {}
         }
     };
-    React.initializeTouchEvents(true);
+    $('#take-off-time-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '若不限定下架時間則不用填';
+        }
+    });
+    $('#level-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '將大型考試的難度分為「簡單」、「中等」、「困難」。'+
+                '若比大型考試簡單的為「非常簡單」；比大型考試的困難的為「非常困難」。';
+        }
+    });
+    $('#cover-range-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '設定此題出現在哪些知識點。填入知識點的標籤，一題可出現多個知識點，' +
+                '以換行來分隔。標籤的命名需與學科規劃者討論。';
+        }
+    });
+    $('#related-video-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '非必填。此欄位為學生在作答此問題時，可參考的相關影片，需要填入 youtube ID。';
+        }
+    });
+    $('#related-exercise-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '非必填。當學生在測驗中答錯此題，會列出此知識點推薦學生更多類似的練習題。'+
+                '此欄需填入練習題的英文名稱。';
+        }
+    });
+    $('#source-explanation').popover({
+        trigger: 'hover',
+        html: true,
+        content: function () {
+            return '顯示題目的出處，若為自編題目此欄可以不填。若有參考資料書寫方式參考以下範例：' +
+                '國民中學資源網、北一女段考、學測數學102、指考數甲099';
+        }
+    });
 </script>
 
 <script src="/ke/local-only/jed.js"></script>
@@ -95,70 +168,26 @@ add hint button ends up touching the bottom of the page). -->
 <script src="/ke/utils/kray.js"></script>
 <script src="/ke/utils/interactive.js"></script>
 <script src="/ke/utils/math.js"></script>
+<!-- js_package("perseus") begin -->
+<script src="lib/marked.js"></script>
+<script src="lib/react-with-addons.js"></script>
+<script src="lib/rcss.js"></script>
+<script src="lib/katex/katex.js"></script>
+<script src="lib/mathquill/mathquill.js"></script>
+<script src="lib/kas.js"></script>
+<script src="build/perseus-1.js"></script>
+<!-- js_package("perseus") end -->
 
 <script>
-(function() {
-requirejs.config({
-    waitSeconds: 120
-});
-// Load khan-exercises modules, then perseus
-require(["ke-deps.js"], function() {
-    // pre built
-    require(["build/perseus-1.js"], initPerseus);
-    // pre built with source maps
-    // require(["build/perseus.debug.js"], initPerseus);
-    // built on demand
-    // require(["src/perseus.js"], initPerseus);
-});
-function initPerseus(Perseus) {
-window.Perseus = Perseus;
+
+$(function() {
+
+React.initializeTouchEvents(true);
+
 var defaultQuestion = {
     "question": {
-        "content": "[[☃ example-graphie-widget 1]]",
-        "widgets": {
-            "example-graphie-widget 1": {
-                "type": "example-graphie-widget",
-                "graded": true,
-                "options": {
-                    "correct": [
-                        -1,
-                        -3
-                    ],
-                    "graph": {
-                        "box": [
-                            340,
-                            340
-                        ],
-                        "labels": [
-                            "x",
-                            "y"
-                        ],
-                        "range": [
-                            [
-                                -10,
-                                10
-                            ],
-                            [
-                                -10,
-                                10
-                            ]
-                        ],
-                        "step": [
-                            1,
-                            1
-                        ],
-                        "gridStep": [
-                            1,
-                            1
-                        ],
-                        "valid": true,
-                        "backgroundImage": null,
-                        "markings": "grid",
-                        "showProtractor": false
-                    }
-                }
-            }
-        }
+        "content": "請在這裡填入問題",
+        "widgets": {}
     },
     "answerArea": {
         "type": "multiple",
@@ -166,10 +195,12 @@ var defaultQuestion = {
             "content": "",
             "widgets": {}
         },
-        "calculator": false
+        "calculator": false,
+        "newQuestion": true,
     },
     "hints": []
 };
+
 var editor;
 var problemNum = _.random(1, 99);
 var enabledFeatures = {
@@ -177,6 +208,19 @@ var enabledFeatures = {
     toolTipFormats: true,
     useMathQuill: true
 };
+url = window.location.hash.split('?')[0].substring(1);
+var question_dic = {};
+var init_data = Perseus.Util.parseQueryString(url);
+var new_perseus_question = true;
+if ('qid' in init_data && init_data.qid != '-1') {
+    new_perseus_question = false;
+}
+if (new_perseus_question == false){
+    enablePerseusEditorIcon();
+} else {
+    disbalePerseusEditorIcon();
+}
+
 $('#toJSON').on('click', function() {
     console.log(JSON.stringify(editor, null, 4));
 });
@@ -188,20 +232,304 @@ $('#permalink').on('click', function(e) {
         encodeURIComponent(JSON.stringify(editor));
     e.preventDefault();
 });
+$('#copy_last_info').on('click',function(e){
+    if (confirm("要複製前一題的題目資訊嗎？(不包含題目內容)")) {
+        if ('host_name' in init_data) {
+            data={
+                'secret':question_dic.secret,
+                'iv':question_dic.iv,
+                'qid_offset':"-1"
+            };
+            $.ajax({
+                url: '//' + init_data.host_name + '/questionpanel/questionmanager/offset-question/',
+                data: data,
+                dataType: 'json',
+                method: "POST",
+
+                success:function(data){
+                    if(data == 'Have_No_Authority'){
+                        alert("抱歉，您沒辦法獲取上一題資料。");
+                    }
+                    else{
+                        renderQuestionInfo(data);
+                    }
+                },
+                error:function(xhr, ajaxOptions, thrownError){
+                    alert(xhr.status + " " + thrownError + "\n請檢查連線狀況");
+                }
+            });
+        }
+    }
+});
+
+$('#save').on('click',clickPerseusSaveEvent);
+
+function clickPerseusSaveEvent(){
+
+    if(question_dic.can_manage_all_questions == 'True') {
+        can_manage_all_questions = true;
+    }
+    else if (question_dic.can_manage_all_questions == 'False') {
+        can_manage_all_questions = false;
+    }
+    else {
+        can_manage_all_questions = question_dic.can_manage_all_questions;
+    }
+
+    if (!new_perseus_question && !question_dic.uploader_id) {
+        return_string = "No-Uploader-Name";
+    }
+    else if (!new_perseus_question && !can_manage_all_questions && question_dic.uploader_id != question_dic.user_id) {
+        return_string = "No-Authorization";
+    }
+    else {
+        return_string = "Have-Authorization";
+    }
+
+    if (return_string == "No-Authorization" || return_string == "No-Uploader-Name") {
+        alert("很抱歉，您沒有權限編輯第" + question_dic.qid +"題。");
+    }
+    else {
+        if (confirm("修改將儲存於資料庫！(截圖將不再跳出頁面！約一分鐘後截圖將在後台自動更新完畢！)")) {
+            is_hidden = $('select#is_hidden_selector').val();
+            subject = $('input#subject').val();
+            if (subject == '科目為必填' || subject == ''){
+                alert('一定要填科目喔！請填入這一題的科目，謝謝！');
+                return;
+            }
+            source = $('input#source').val();
+            level = $('select#level').val();
+            cover_range = $('textarea#cover_range').val();
+            if (cover_range == '範圍為必填' || cover_range == ''){
+                alert('一定要填範圍喔！請填入這一題的範圍，謝謝！');
+                return;
+            }
+            related_video = $('textarea#related_video').val().trim();
+            related_exercise = $('textarea#related_exercise').val();
+            expire_date = $('input#expire_date').val();
+            question = JSON.stringify(editor);
+            host_name = question_dic.host_name;
+            data = {'qid':question_dic.qid,
+                    'is_hidden':is_hidden,
+                    'subject':subject,
+                    'source':source,
+                    'level':level,
+                    'cover_range':cover_range,
+                    'related_video':related_video,
+                    'related_exercise':related_exercise,
+                    'expire_date':expire_date,
+                    'can_manage_all_questions':question_dic.can_manage_all_questions,
+                    'secret':question_dic.secret,
+                    'iv':question_dic.iv,
+                    'question':question
+                };
+            disbalePerseusSaveIcon(); //prevent double click
+            if (new_perseus_question == true) {
+                newQuestion(data, 'save-perseus-question');
+            }else{
+                getQuestion(data, 'save-edit/');
+            }
+            $.ajax({url: "/api/v1/snap/add_jobs/PERSEUS/"+question_dic.qid});
+        }
+    }
+};
+
+function disbalePerseusEditorIcon(){
+    $('#prev_question, #next_question, #preview').removeClass('perseus-editor-icon');
+    $('#prev_question, #next_question, #preview').addClass('disabled-perseus-editor-icon');
+    $('#prev_question, #next_question, #preview').on('click', function(e) {
+        alert('請先存檔喔！');
+    })
+};
+
+function enablePerseusEditorIcon(){
+    $('#prev_question, #next_question, #preview').removeClass('disabled-perseus-editor-icon');
+    $('#prev_question, #next_question, #preview').addClass('perseus-editor-icon');
+    $('#prev_question, #next_question, #preview').off('click');
+    $('#preview').on('click', function(e){
+        var qid = $('#qid').text();
+        $("#preview_form input[name=qid]").val(qid);
+        $("#preview_form input[name=question_amount]").val(question_dic.question_amount);
+        $("#preview_form").submit();
+    });
+    $('#prev_question').on('click',function(e){
+        if(question_dic.qid == 0){
+            alert('沒有上一題囉！');
+            return;
+        }
+        data={
+            'secret':question_dic.secret,
+            'iv':question_dic.iv,
+            'qid_offset':"-1"
+        };
+        getQuestion(data, 'offset-question/');
+    });
+    $('#next_question').on('click',function(e){
+        if(question_dic.qid == question_dic.question_amount-1){
+            alert('沒有下一題囉！');
+            return;
+        }
+        data={
+            'secret':question_dic.secret,
+            'iv':question_dic.iv,
+            'qid_offset':"1"
+        };
+        getQuestion(data, 'offset-question/');
+    });
+};
+
+function  disbalePerseusSaveIcon(){
+    $('#save').removeClass('perseus-editor-icon');
+    $('#save').addClass('disabled-perseus-editor-icon');
+    $('#save').off('click');
+    $('#save').on('click', function(e) {
+        alert('正在存檔中...請稍候！');
+    })
+}
+
+function  enablePerseusSaveIcon(){
+    $('#save').removeClass('disabled-perseus-editor-icon');
+    $('#save').addClass('perseus-editor-icon');
+    $('#save').off('click');
+    $('#save').on('click', clickPerseusSaveEvent)
+}
+
+function getQuestion(data, func){
+    if (new_perseus_question) {
+        default_question_dic = {
+            'is_hidden': true,
+            'subject': '科目為必填',
+            'source': '',
+            'level': 1,
+            'cover_range': ['範圍為必填'],
+            'related_video': [],
+            'related_exercise': []
+        };
+        $.extend(default_question_dic, init_data);
+
+        if (default_question_dic.can_manage_all_questions === "True"){
+            default_question_dic.is_hidden = false;
+        } else {
+            default_question_dic.is_hidden = true;
+        }
+        question_dic = default_question_dic;
+        renderQuestion(default_question_dic);
+    }
+    else {
+        $.ajax({
+            url: '//' + init_data.host_name + '/questionpanel/questionmanager/' + func,
+            data: data,
+            dataType: 'json',
+            method: "POST",
+
+            success:function(data){
+                if(data == 'Have_No_Authority'){
+                    alert("您沒有足夠權限，將跳轉至題庫管理頁面。");
+                    parent.window.location = '//' + init_data.host_name + '/questionpanel/questionmanager/';
+                }
+                else{
+                    question_dic = data;
+                    renderQuestion(data);
+                    enablePerseusSaveIcon();
+                }
+            },
+            error:function(xhr, ajaxOptions, thrownError){
+                alert(xhr.status + " " + thrownError + "\n請檢查連線狀況");
+                enablePerseusSaveIcon();
+            }
+        });
+    }
+};
+function newQuestion(data, func){
+    host_name = init_data.host_name;
+    $.ajax({
+        url: '//' + host_name + '/questionpanel/makeperseusquestion/' + func,
+        data: data,
+        dataType: 'json',
+        method: "POST",
+
+        success:function(data){
+             if(data == 'Have_No_Authority'){
+                // user has no authority, redirect to junyiacademy.org
+                alert("您沒有足夠權限，將跳轉至首頁。");
+                parent.window.location = '//' + init_data.host_name;
+            }
+            else{
+                question_dic = data;
+                if (question_dic.message.search('更新失敗') === -1) {
+                    enablePerseusEditorIcon();
+                }
+                enablePerseusSaveIcon();
+                renderQuestion(data);
+            }
+        },
+        error:function(xhr, ajaxOptions, thrownError){
+            alert(xhr.status + " " + thrownError + "\n請檢查連線狀況");
+            enablePerseusSaveIcon();
+        }
+    });
+}
+
 $('#problemNum').text(problemNum);
 $('#enabledFeatures').html(_.map(enabledFeatures, function(enabled, feature) {
     return '<span style="margin-left: 5px; background: ' +
             (enabled ? "#aaffaa" : "#ffcccc") + ';">' + feature + '</span>';
 }).join(''));
-var query = Perseus.Util.parseQueryString(window.location.hash.substring(1));
-var question = query.content ? JSON.parse(query.content) : defaultQuestion;
-Perseus.init({skipMathJax: false}).then(function() {
+
+function renderQuestionInfo(question_dic) {
+    if (question_dic.is_hidden === true) {
+        $('select#is_hidden_selector').val('True');
+    }
+    else {
+        $('select#is_hidden_selector').val('False');
+    }
+    question_dic.related_exercise = question_dic.related_exercise || [];
+    // this line can be removed when we make sure that the get 'dada' has related_exercise attribute
+
+    $('input#subject').val(question_dic.subject);
+    $('input#source').val(question_dic.source);
+    $('select#level').val(question_dic.level);
+    $('textarea#cover_range').val(question_dic.cover_range);
+    $('textarea#related_video').val(question_dic.related_video);
+    $('textarea#related_exercise').val(question_dic.related_exercise);
+    $('input#expire_date').val(question_dic.expire_date);
+};
+
+function renderQuestion(question_dic) {
+    var question = question_dic.question ? JSON.parse(question_dic.question) : defaultQuestion;
+    new_perseus_question = false;
+    if (question_dic.qid == '-1') {
+        new_perseus_question = true;
+    }
+
+    // Show or hide copy-last-info button
+    if ('host_name' in question_dic) {
+        $('#copy_last_info').show();
+    }
+    else {
+        $('#copy_last_info').hide();
+    }
+
+    // Show is_hidden status for moderator
+    if (question_dic.is_hidden) {
+        $('span#is_hidden_word').html("隱藏");
+    }
+    else{
+        $('span#is_hidden_word').html("公開");
+    }
+
+    $('span#qid').html(question_dic.qid);
+    renderQuestionInfo(question_dic);
+    if (question_dic.message) {
+        confirm(question_dic.message);
+    }
+
     var editorProps = _.extend(question, {
         problemNum: problemNum,
         enabledFeatures: enabledFeatures,
         developerMode: true,
         imageUploader: function(image, callback) {
-            _.delay(callback, 1000, "http://fake.image.url");
+            _.delay(callback, 1000, "//fake.image.url");
         },
         apiOptions: {
             __onInputError: function() {
@@ -216,6 +544,7 @@ Perseus.init({skipMathJax: false}).then(function() {
             }
         }
     });
+
     editor = React.renderComponent(
         Perseus.StatefulEditorPage(editorProps, null),
         document.getElementById("perseus-container")
@@ -223,13 +552,28 @@ Perseus.init({skipMathJax: false}).then(function() {
     // Some hacks to make debugging nicer
     window.editorPage = editor.refs.editor;
     window.itemRenderer = window.editorPage.renderer;
+}
+
+Perseus.init({skipMathJax: false}).then(function() {
+    init_data['qid_offset'] = 0;
+    getQuestion(init_data, 'offset-question/');
+
 }).then(function() {
 }, function(err) {
     console.error(err);
 });
-}
-})();
-</script>
 
+});
+</script>
+<form id="preview_form" action="/questionpanel/questionmanager/preview" method="get" target="_blank" class ="hidden">
+        <input type="text" name="blob_key">
+        <input type="text" name="qid">
+        <input type="text" name="question_amount">
+        <input type="text" name="type">
+        <input type="text" name="subject">
+        <input type="text" name="range">
+        <input type="text" name="level">
+        <input type="submit" value="Submit">
+</form>
 </body>
 </html>
